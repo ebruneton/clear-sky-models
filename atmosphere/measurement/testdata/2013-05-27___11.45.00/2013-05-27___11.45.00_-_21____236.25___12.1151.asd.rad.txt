@@ -1,0 +1,4 @@
+Wavelength	Radiance
+350	0.0
+4000	0.0
+

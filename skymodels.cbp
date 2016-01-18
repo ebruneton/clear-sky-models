@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="clearskymodels" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="output/Debug/clearskymodels" prefix_auto="1" extension_auto="1" />
+				<Option object_output="output/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="output/Release/clearskymodels" prefix_auto="1" extension_auto="1" />
+				<Option object_output="output/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-DNDEBUG" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Test">
+				<Option output="output/Debug/clearskymodels_test" prefix_auto="1" extension_auto="1" />
+				<Option object_output="output/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wmain" />
+			<Add option="-pedantic-errors" />
+			<Add option="-pedantic" />
+			<Add option="-Wall" />
+			<Add option="-std=c++11" />
+		</Compiler>
+		<Unit filename="Makefile" />
+		<Unit filename="atmosphere/atmosphere.cc" />
+		<Unit filename="atmosphere/atmosphere.h" />
+		<Unit filename="atmosphere/atmosphere_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="atmosphere/comparisons.cc" />
+		<Unit filename="atmosphere/comparisons.h" />
+		<Unit filename="atmosphere/measurement/measured_atmosphere.cc" />
+		<Unit filename="atmosphere/measurement/measured_atmosphere.h" />
+		<Unit filename="atmosphere/measurement/measured_atmosphere_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="atmosphere/measurement/measured_atmospheres.cc" />
+		<Unit filename="atmosphere/measurement/measured_atmospheres.h" />
+		<Unit filename="atmosphere/model/bruneton/bruneton.cc" />
+		<Unit filename="atmosphere/model/bruneton/bruneton.h" />
+		<Unit filename="atmosphere/model/bruneton/core.cc" />
+		<Unit filename="atmosphere/model/bruneton/core.h" />
+		<Unit filename="atmosphere/model/bruneton/core.inl" />
+		<Unit filename="atmosphere/model/haber/haber.cc" />
+		<Unit filename="atmosphere/model/haber/haber.h" />
+		<Unit filename="atmosphere/model/hosek/ArHosekSkyModel.cc" />
+		<Unit filename="atmosphere/model/hosek/ArHosekSkyModel.h" />
+		<Unit filename="atmosphere/model/hosek/ArHosekSkyModelData_CIEXYZ.h" />
+		<Unit filename="atmosphere/model/hosek/ArHosekSkyModelData_RGB.h" />
+		<Unit filename="atmosphere/model/hosek/ArHosekSkyModelData_Spectral.h" />
+		<Unit filename="atmosphere/model/hosek/hosek.cc" />
+		<Unit filename="atmosphere/model/hosek/hosek.h" />
+		<Unit filename="atmosphere/model/libradtran/libradtran.cc" />
+		<Unit filename="atmosphere/model/libradtran/libradtran.h" />
+		<Unit filename="atmosphere/model/nishita/nishita93.cc" />
+		<Unit filename="atmosphere/model/nishita/nishita93.h" />
+		<Unit filename="atmosphere/model/nishita/nishita96.cc" />
+		<Unit filename="atmosphere/model/nishita/nishita96.h" />
+		<Unit filename="atmosphere/model/polradtran/polradtran.cc" />
+		<Unit filename="atmosphere/model/polradtran/polradtran.h" />
+		<Unit filename="atmosphere/model/preetham/preetham.cc" />
+		<Unit filename="atmosphere/model/preetham/preetham.h" />
+		<Unit filename="atmosphere/sun_direction.cc" />
+		<Unit filename="atmosphere/sun_direction.h" />
+		<Unit filename="main.cc">
+			<Option target="Release" />
+			<Option target="Debug" />
+		</Unit>
+		<Unit filename="math/angle.h" />
+		<Unit filename="math/angle_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="math/binary_function.h" />
+		<Unit filename="math/binary_function_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="math/function.h" />
+		<Unit filename="math/function_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="math/hemispherical_function.h" />
+		<Unit filename="math/hemispherical_function_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="math/scalar.h" />
+		<Unit filename="math/scalar_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="math/ternary_function.h" />
+		<Unit filename="math/ternary_function_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="math/vector.h" />
+		<Unit filename="math/vector_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="physics/cie.cc" />
+		<Unit filename="physics/cie.h" />
+		<Unit filename="physics/cie_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="physics/spectrum.h" />
+		<Unit filename="physics/spectrum_test.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="physics/units.h" />
+		<Unit filename="test/test_case.h" />
+		<Unit filename="test/test_main.cc">
+			<Option target="Test" />
+		</Unit>
+		<Unit filename="util/image.cc" />
+		<Unit filename="util/image.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
