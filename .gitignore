@@ -1,0 +1,6 @@
+input/**/*.asd.txt
+input/**/*.asd.rad.txt
+output/**
+paper/figures/**
+main.plot
+paper.plot
