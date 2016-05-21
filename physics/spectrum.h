@@ -223,33 +223,42 @@ typedef WavelengthFunction<ScatteringCoefficient> ScatteringSpectrum;
 // A function from wavelength to phase function values.
 typedef WavelengthFunction<InverseSolidAngle> PhaseFunctionSpectrum;
 
-template<int L1, int WL1, int SA1, int P1, int L2, int WL2, int SA2, int P2>
-WavelengthFunction< Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2> > operator*(
-    WavelengthFunction< Scalar<L1, WL1, SA1, P1> > lhs,
-    Scalar<L2, WL2, SA2, P2> rhs) {
-  WavelengthFunction< Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2> > result;
+template<int L1, int WL1, int SA1, int P1, int LP1,
+    int L2, int WL2, int SA2, int P2, int LP2>
+WavelengthFunction<Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2, LP1 + LP2>>
+operator*(
+    WavelengthFunction<Scalar<L1, WL1, SA1, P1, LP1>> lhs,
+    Scalar<L2, WL2, SA2, P2, LP2> rhs) {
+  WavelengthFunction<Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2, LP1 + LP2>>
+      result;
   for (unsigned int i = 0; i < spectrum::NUM_WAVELENGTH; ++i) {
     result[i] = lhs[i] * rhs;
   }
   return result;
 }
 
-template<int L1, int WL1, int SA1, int P1, int L2, int WL2, int SA2, int P2>
-WavelengthFunction< Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2> > operator*(
-    WavelengthFunction< Scalar<L1, WL1, SA1, P1> > lhs,
-    WavelengthFunction< Scalar<L2, WL2, SA2, P2> > rhs) {
-  WavelengthFunction< Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2> > result;
+template<int L1, int WL1, int SA1, int P1, int LP1,
+    int L2, int WL2, int SA2, int P2, int LP2>
+WavelengthFunction<Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2, LP1 + LP2>>
+operator*(
+    WavelengthFunction<Scalar<L1, WL1, SA1, P1, LP1>> lhs,
+    WavelengthFunction<Scalar<L2, WL2, SA2, P2, LP2>> rhs) {
+  WavelengthFunction<Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2, LP1 + LP2>>
+      result;
   for (unsigned int i = 0; i < spectrum::NUM_WAVELENGTH; ++i) {
     result[i] = lhs[i] * rhs[i];
   }
   return result;
 }
 
-template<int L1, int WL1, int SA1, int P1, int L2, int WL2, int SA2, int P2>
-WavelengthFunction< Scalar<L1 - L2, WL1 - WL2, SA1 - SA2, P1 - P2> > operator/(
-    WavelengthFunction< Scalar<L1, WL1, SA1, P1> > lhs,
-    WavelengthFunction< Scalar<L2, WL2, SA2, P2> > rhs) {
-  WavelengthFunction< Scalar<L1 - L2, WL1 - WL2, SA1 - SA2, P1 - P2> > result;
+template<int L1, int WL1, int SA1, int P1, int LP1,
+    int L2, int WL2, int SA2, int P2, int LP2>
+WavelengthFunction<Scalar<L1 - L2, WL1 - WL2, SA1 - SA2, P1 - P2, LP1 - LP2>>
+operator/(
+    WavelengthFunction<Scalar<L1, WL1, SA1, P1, LP1>> lhs,
+    WavelengthFunction<Scalar<L2, WL2, SA2, P2, LP2>> rhs) {
+  WavelengthFunction<Scalar<L1 - L2, WL1 - WL2, SA1 - SA2, P1 - P2, LP1 - LP2>>
+      result;
   for (unsigned int i = 0; i < spectrum::NUM_WAVELENGTH; ++i) {
     result[i] = lhs[i] / rhs[i];
   }
@@ -276,10 +285,10 @@ WavelengthFunction<T> exp(WavelengthFunction<T> wavelength_function) {
 
 // Returns the integral of the given function over its range of wavelengths,
 // i.e. integral of function*dlambda from MIN_WAVELENGTH to MAX_WAVELENGTH.
-template<int L, int WL, int SA, int P>
-Scalar<L, WL + 1, SA, P> Integral(
-    WavelengthFunction< Scalar<L, WL, SA, P> > wavelength_function) {
-  Scalar<L, WL, SA, P> sum = 0.0 * Scalar<L, WL, SA, P>::Unit();
+template<int L, int WL, int SA, int P, int LP>
+Scalar<L, WL + 1, SA, P, LP> Integral(
+    WavelengthFunction<Scalar<L, WL, SA, P, LP>> wavelength_function) {
+  Scalar<L, WL, SA, P, LP> sum = 0.0 * Scalar<L, WL, SA, P, LP>::Unit();
   for (unsigned int i = 0; i < wavelength_function.size(); ++i) {
     sum = sum + wavelength_function[i];
   }
@@ -290,14 +299,33 @@ Scalar<L, WL + 1, SA, P> Integral(
 }
 
 // Returns the integral of the given function over a subset of its range,
+// i.e. integral of function*dlambda from min_wavelength to max_wavelength,
+// using the specified number of samples.
+template<int L, int WL, int SA, int P, int LP>
+Scalar<L, WL + 1, SA, P, LP> Integral(
+    WavelengthFunction<Scalar<L, WL, SA, P, LP>> wavelength_function,
+     Wavelength min_wavelength, Wavelength max_wavelength,
+     int number_of_wavelengths) {
+  const Wavelength delta_lambda =
+      (max_wavelength - min_wavelength) / number_of_wavelengths;
+  Wavelength lambda = min_wavelength;
+  Scalar<L, WL, SA, P, LP> sum = 0.0 * Scalar<L, WL, SA, P, LP>::Unit();
+  for (unsigned int i = 0; i < number_of_wavelengths; ++i) {
+    sum = sum + wavelength_function(lambda);
+    lambda = lambda + delta_lambda;
+  }
+  return sum * delta_lambda;
+}
+
+// Returns the integral of the given function over a subset of its range,
 // i.e. integral of function*dlambda from min_wavelength to max_wavelength.
-template<int L, int WL, int SA, int P>
-Scalar<L, WL + 1, SA, P> Integral(
-    WavelengthFunction< Scalar<L, WL, SA, P> > wavelength_function,
+template<int L, int WL, int SA, int P, int LP>
+Scalar<L, WL + 1, SA, P, LP> Integral(
+    WavelengthFunction<Scalar<L, WL, SA, P, LP>> wavelength_function,
     Wavelength min_wavelength, Wavelength max_wavelength) {
   assert(min_wavelength >= spectrum::MIN_WAVELENGTH);
   assert(max_wavelength <= spectrum::MAX_WAVELENGTH);
-  Scalar<L, WL + 1, SA, P> sum = 0.0 * Scalar<L, WL + 1, SA, P>::Unit();
+  Scalar<L, WL + 1, SA, P, LP> sum = 0.0 * Scalar<L, WL + 1, SA, P, LP>::Unit();
   for (unsigned int i = 0; i < wavelength_function.size(); ++i) {
     Wavelength dlambda =
         std::min(wavelength_function.GetWavelength(i + 1), max_wavelength) -

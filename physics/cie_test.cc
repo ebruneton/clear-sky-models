@@ -48,11 +48,22 @@ class TestCie : public TestCase {
     ExpectNear(0.6949, cie_y_bar_function()(595.0 * nm)(), kEps);
     ExpectNear(0.001, cie_z_bar_function()(595.0 * nm)(), kEps);
   }
+
+  void TestSFunctions() {
+    const double kEps = 1e-12;
+    ExpectNear(61.5, S0_function()(360.0 * nm)(), kEps);
+    ExpectNear(38.0, S1_function()(360.0 * nm)(), kEps);
+    ExpectNear(5.3, S2_function()(360.0 * nm)(), kEps);
+    ExpectNear(89.8, S0_function()(595.0 * nm)(), kEps);
+    ExpectNear(-4.65, S1_function()(595.0 * nm)(), kEps);
+    ExpectNear(2.65, S2_function()(595.0 * nm)(), kEps);
+  }
 };
 
 namespace {
 
 TestCie colorfunctions("colorfunctions", &TestCie::TestColorFunctions);
+TestCie sfunctions("sfunctions", &TestCie::TestSFunctions);
 
 }  // anonymous namespace
 

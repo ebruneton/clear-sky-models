@@ -36,8 +36,10 @@
 
 constexpr Angle PolRadtran::kDeltaPhi;
 
-PolRadtran::PolRadtran(const std::string& libradtran_path, bool polarization)
-    : libradtran_path_(libradtran_path), polarization_(polarization) {
+PolRadtran::PolRadtran(const std::string& libradtran_uvspec,
+    const std::string& libradtran_data, bool polarization)
+    : libradtran_uvspec_(libradtran_uvspec), libradtran_data_(libradtran_data),
+      polarization_(polarization) {
   // Source: solar spectrum.
   IrradianceSpectrum solar = SolarSpectrum();
   std::ofstream source("output/libradtran/solar_spectrum.txt");
@@ -56,7 +58,7 @@ PolRadtran::PolRadtran(const std::string& libradtran_path, bool polarization)
 
   // libRadtran input model file.
   std::ofstream model("output/libradtran/model.txt");
-  model << "data_files_path " << libradtran_path << "data\n";
+  model << "data_files_path " << libradtran_data << "\n";
   model << "\n#source irradiance\n";
   model << "source solar output/libradtran/solar_spectrum.txt per_nm\n";
   model << "wavelength " << solar.GetWavelength(0).to(nm) << " "
@@ -137,7 +139,7 @@ void PolRadtran::MaybeComputeSkyDome(Angle sun_zenith) const {
     input.close();
 
     const std::string cmd =
-        libradtran_path_ + "bin/uvspec -i output/libradtran/input.txt";
+        libradtran_uvspec_ + " -i output/libradtran/input.txt";
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) {
       return;

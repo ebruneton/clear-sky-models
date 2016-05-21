@@ -146,7 +146,8 @@ RadianceSpectrum Nishita96::GetSkyRadiance(Length altitude, Angle sun_zenith,
       // Transmittance from the viewer to p_i.
       DimensionlessSpectrum transmittance_i(exp(-(RayleighScattering() *
           rayleigh_length + MieExtinction() * mie_length)));
-      WavelengthFunction<Scalar<-1, 0, -1, 0>> double_scattering(0.0 / m / sr);
+      WavelengthFunction<Scalar<-1, 0, -1, 0, 0>>
+          double_scattering(0.0 / m / sr);
       for (int j = 0; j < 8; ++j) {
         double_scattering +=
             sample_single_scattering_[j].GetSingleScattering(p_i) * (

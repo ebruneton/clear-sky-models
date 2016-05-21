@@ -43,6 +43,18 @@ constexpr Length RayleighScaleHeight = 8000.0 * m;
 // The height of the Mie particle layer if its density was uniform.
 constexpr Length MieScaleHeight = 1200.0 * m;
 
+// The Angstrom alpha coefficient for the Mie optical depth.
+constexpr double MieAngstromAlpha = 0.8;
+
+// The Angstrom beta coefficient for the Mie optical depth.
+constexpr double MieAngstromBeta = 0.04;
+
+// The g parameter of the Cornette-Shanks phase function used for Mie particles.
+constexpr double MiePhaseFunctionG = 0.7;
+
+// The Linke turbidity value, for the Preetham and Hosek models.
+constexpr double Turbidity = 2.53;
+
 // Returns the spectral irradiance of the Sun at the top of the atmosphere.
 const IrradianceSpectrum& SolarSpectrum();
 
@@ -55,6 +67,11 @@ const ScatteringSpectrum& MieExtinction();
 // Returns the Mie scattering coefficient at sea level.
 const ScatteringSpectrum& MieScattering();
 
+// Returns the Mie extinction and scattering coefficients at sea level for
+// the given Angstrom parameters.
+ScatteringSpectrum MieExtinction(double angstrom_alpha, double angstrom_beta);
+ScatteringSpectrum MieScattering(double angstrom_alpha, double angstrom_beta);
+
 // Computes the Rayleigh phase function for the given scattering angle.
 // The integral of this function over all solid angles is 1.
 InverseSolidAngle RayleighPhaseFunction(Angle scattering_angle);
@@ -65,6 +82,7 @@ InverseSolidAngle RayleighPhaseFunction(Number scattering_angle_cosine);
 // The integral of this function over all solid angles is 1.
 InverseSolidAngle MiePhaseFunction(Angle scattering_angle);
 InverseSolidAngle MiePhaseFunction(Number scattering_angle_cosine);
+InverseSolidAngle MiePhaseFunction(double g, Number scattering_angle_cosine);
 
 const DimensionlessSpectrum& GroundAlbedo();
 
@@ -72,6 +90,10 @@ const DimensionlessSpectrum& GroundAlbedo();
 class Atmosphere {
  public:
   virtual ~Atmosphere() {}
+
+  // Returns the number of wavelengths originally used by this atmosphere model.
+  // The default implementation returns spectrum::NUM_WAVELENGTH.
+  virtual int GetOriginalNumberOfWavelengths() const;
 
   // Returns the irradiance on a plane perpendicular to the Sun direction.
   virtual IrradianceSpectrum GetSunIrradiance(Length altitude,

@@ -44,7 +44,9 @@ std::string ToString(int i) {
 
 }  // anonymous namespace
 
-Bruneton::Bruneton(ScatteringType scattering_type) {
+Bruneton::Bruneton(ScatteringType scattering_type,
+    int original_number_of_wavelength)
+        : original_number_of_wavelength_(original_number_of_wavelength) {
   std::ifstream f;
   std::string name;
   const std::string cache_directory = "output/cache/bruneton/";

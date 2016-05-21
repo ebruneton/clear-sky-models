@@ -39,11 +39,11 @@ struct Double {
   explicit inline constexpr Double(double value) : value(value) {}
 };
 
-// A scalar value with a dimension combining up to four base units (length,
+// A scalar value with a dimension combining up to five base units (length,
 // mass, time, etc). The template parameters are the exponents of the base units
 // in the scalar value dimension. For instance, if U1 corresponds to length and
-// U3 to time, a speed is a Scalar<1, 0, -1, 0> (length divided by time), an
-// area is a Scalar<2, 0, 0, 0>, etc. The semantics of the base units is not
+// U3 to time, a speed is a Scalar<1, 0, -1, 0, 0> (length divided by time), an
+// area is a Scalar<2, 0, 0, 0, 0>, etc. The semantics of the base units is not
 // defined by this template so that it can be used with various unit systems.
 // NOTES:
 // - We intentionally do not provide a constructor from a literal value, except
@@ -52,7 +52,7 @@ struct Double {
 // - Likewise, we intentionally do not provide a noarg accessor, except for
 // dimensionless scalars, in order to force the use of an explicit unit when
 // accessing a value (e.g. "double value = l.to(km);").
-template<int U1, int U2, int U3, int U4>
+template<int U1, int U2, int U3, int U4, int U5>
 class Scalar {
  public:
   Scalar() {}
@@ -61,7 +61,7 @@ class Scalar {
 
   constexpr double operator()() const;
 
-  inline constexpr double to(const Scalar<U1, U2, U3, U4> unit) const {
+  inline constexpr double to(const Scalar<U1, U2, U3, U4, U5> unit) const {
     return value_ / unit.value_;
   }
 
@@ -91,10 +91,11 @@ class Scalar {
     return Scalar(Double(value_ * rhs));
   }
 
-  template<int V1, int V2, int V3, int V4>
-  inline constexpr Scalar<U1 + V1, U2 + V2, U3 + V3, U4 + V4> operator*(
-      const Scalar<V1, V2, V3, V4> rhs) const {
-    return Scalar<U1 + V1, U2 + V2, U3 + V3, U4 + V4>(
+  template<int V1, int V2, int V3, int V4, int V5>
+  inline constexpr
+  Scalar<U1 + V1, U2 + V2, U3 + V3, U4 + V4, U5 + V5> operator*(
+      const Scalar<V1, V2, V3, V4, V5> rhs) const {
+    return Scalar<U1 + V1, U2 + V2, U3 + V3, U4 + V4, U5 + V5>(
         Double(value_ * rhs.value_));
   }
 
@@ -102,30 +103,31 @@ class Scalar {
     return Scalar(Double(value_ / rhs));
   }
 
-  template<int V1, int V2, int V3, int V4>
-  inline constexpr Scalar<U1 - V1, U2 - V2, U3 - V3, U4 - V4> operator/(
-      const Scalar<V1, V2, V3, V4> rhs) const {
-    return Scalar<U1 - V1, U2 - V2, U3 - V3, U4 - V4>(
+  template<int V1, int V2, int V3, int V4, int V5>
+  inline constexpr
+  Scalar<U1 - V1, U2 - V2, U3 - V3, U4 - V4, U5 - V5> operator/(
+      const Scalar<V1, V2, V3, V4, V5> rhs) const {
+    return Scalar<U1 - V1, U2 - V2, U3 - V3, U4 - V4, U5 - V5>(
         Double(value_ / rhs.value_));
   }
 
-  inline bool operator==(const Scalar<U1, U2, U3, U4> rhs) const {
+  inline bool operator==(const Scalar<U1, U2, U3, U4, U5> rhs) const {
     return value_ == rhs.value_;
   }
 
-  inline bool operator<(const Scalar<U1, U2, U3, U4> rhs) const {
+  inline bool operator<(const Scalar<U1, U2, U3, U4, U5> rhs) const {
     return value_ < rhs.value_;
   }
 
-  inline bool operator<=(const Scalar<U1, U2, U3, U4> rhs) const {
+  inline bool operator<=(const Scalar<U1, U2, U3, U4, U5> rhs) const {
     return value_ <= rhs.value_;
   }
 
-  inline bool operator>(const Scalar<U1, U2, U3, U4> rhs) const {
+  inline bool operator>(const Scalar<U1, U2, U3, U4, U5> rhs) const {
     return value_ > rhs.value_;
   }
 
-  inline bool operator>=(const Scalar<U1, U2, U3, U4> rhs) const {
+  inline bool operator>=(const Scalar<U1, U2, U3, U4, U5> rhs) const {
     return value_ >= rhs.value_;
   }
 
@@ -137,57 +139,57 @@ class Scalar {
 
   double value_;
 
-  template<int V1, int V2, int V3, int V4>
+  template<int V1, int V2, int V3, int V4, int V5>
   friend class Scalar;
 
-  friend constexpr Scalar<0, 0, 0, 0> operator+(
-      double lhs, const Scalar<0, 0, 0, 0> rhs);
+  friend constexpr Scalar<0, 0, 0, 0, 0> operator+(
+      double lhs, const Scalar<0, 0, 0, 0, 0> rhs);
 
-  friend constexpr Scalar<0, 0, 0, 0> operator+(
-      const Scalar<0, 0, 0, 0> lhs, double rhs);
+  friend constexpr Scalar<0, 0, 0, 0, 0> operator+(
+      const Scalar<0, 0, 0, 0, 0> lhs, double rhs);
 
-  friend constexpr Scalar<0, 0, 0, 0> operator-(
-      double lhs, const Scalar<0, 0, 0, 0> rhs);
+  friend constexpr Scalar<0, 0, 0, 0, 0> operator-(
+      double lhs, const Scalar<0, 0, 0, 0, 0> rhs);
 
-  friend constexpr Scalar<0, 0, 0, 0> operator-(
-      const Scalar<0, 0, 0, 0> lhs, double rhs);
+  friend constexpr Scalar<0, 0, 0, 0, 0> operator-(
+      const Scalar<0, 0, 0, 0, 0> lhs, double rhs);
 
-  template<int V1, int V2, int V3, int V4>
-  friend constexpr Scalar<V1, V2, V3, V4> operator*(
-      double lhs, const Scalar<V1, V2, V3, V4> rhs);
+  template<int V1, int V2, int V3, int V4, int V5>
+  friend constexpr Scalar<V1, V2, V3, V4, V5> operator*(
+      double lhs, const Scalar<V1, V2, V3, V4, V5> rhs);
 
-  template<int V1, int V2, int V3, int V4>
-  friend constexpr Scalar<-V1, -V2, -V3, -V4> operator/(
-      double lhs, const Scalar<V1, V2, V3, V4> rhs);
+  template<int V1, int V2, int V3, int V4, int V5>
+  friend constexpr Scalar<-V1, -V2, -V3, -V4, -V5> operator/(
+      double lhs, const Scalar<V1, V2, V3, V4, V5> rhs);
 
-  friend bool operator<(const Scalar<0, 0, 0, 0> lhs, double rhs);
-  friend bool operator<(double lhs, const Scalar<0, 0, 0, 0> rhs);
-  friend bool operator<=(const Scalar<0, 0, 0, 0> lhs, double rhs);
-  friend bool operator<=(double lhs, const Scalar<0, 0, 0, 0> rhs);
-  friend bool operator>(const Scalar<0, 0, 0, 0> lhs, double rhs);
-  friend bool operator>(double lhs, const Scalar<0, 0, 0, 0> rhs);
-  friend bool operator>=(const Scalar<0, 0, 0, 0> lhs, double rhs);
-  friend bool operator>=(double lhs, const Scalar<0, 0, 0, 0> rhs);
+  friend bool operator<(const Scalar<0, 0, 0, 0, 0> lhs, double rhs);
+  friend bool operator<(double lhs, const Scalar<0, 0, 0, 0, 0> rhs);
+  friend bool operator<=(const Scalar<0, 0, 0, 0, 0> lhs, double rhs);
+  friend bool operator<=(double lhs, const Scalar<0, 0, 0, 0, 0> rhs);
+  friend bool operator>(const Scalar<0, 0, 0, 0, 0> lhs, double rhs);
+  friend bool operator>(double lhs, const Scalar<0, 0, 0, 0, 0> rhs);
+  friend bool operator>=(const Scalar<0, 0, 0, 0, 0> lhs, double rhs);
+  friend bool operator>=(double lhs, const Scalar<0, 0, 0, 0, 0> rhs);
 
-  friend constexpr Scalar<0, 0, 0, 0> exp(const Scalar<0, 0, 0, 0> x);
-  friend Scalar<0, 0, 0, 0> floor(const Scalar<0, 0, 0, 0> x);
-  friend constexpr Scalar<0, 0, 0, 0> log(const Scalar<0, 0, 0, 0> x);
-  friend Scalar<0, 0, 0, 0> max(const Scalar<0, 0, 0, 0> x, double y);
-  friend Scalar<0, 0, 0, 0> max(double x, const Scalar<0, 0, 0, 0> y);
-  friend Scalar<0, 0, 0, 0> min(const Scalar<0, 0, 0, 0> x, double y);
-  friend Scalar<0, 0, 0, 0> min(double x, const Scalar<0, 0, 0, 0> y);
-  friend Scalar<0, 0, 0, 0> pow(const Scalar<0, 0, 0, 0> x,
-      const Scalar<0, 0, 0, 0> y);
-  friend Scalar<0, 0, 0, 0> pow(double x, const Scalar<0, 0, 0, 0> y);
-  friend Scalar<0, 0, 0, 0> pow(const Scalar<0, 0, 0, 0> x, double y);
-  friend Scalar<0, 0, 0, 0> sqrt(const Scalar<0, 0, 0, 0> x);
-  template<int V1, int V2, int V3, int V4>
-  friend constexpr Scalar<V1 / 2, V2 / 2, V3 / 2, V4 / 2> sqrt(
-      const Scalar<V1, V2, V3, V4> x);
+  friend constexpr Scalar<0, 0, 0, 0, 0> exp(const Scalar<0, 0, 0, 0, 0> x);
+  friend Scalar<0, 0, 0, 0, 0> floor(const Scalar<0, 0, 0, 0, 0> x);
+  friend constexpr Scalar<0, 0, 0, 0, 0> log(const Scalar<0, 0, 0, 0, 0> x);
+  friend Scalar<0, 0, 0, 0, 0> max(const Scalar<0, 0, 0, 0, 0> x, double y);
+  friend Scalar<0, 0, 0, 0, 0> max(double x, const Scalar<0, 0, 0, 0, 0> y);
+  friend Scalar<0, 0, 0, 0, 0> min(const Scalar<0, 0, 0, 0, 0> x, double y);
+  friend Scalar<0, 0, 0, 0, 0> min(double x, const Scalar<0, 0, 0, 0, 0> y);
+  friend Scalar<0, 0, 0, 0, 0> pow(const Scalar<0, 0, 0, 0, 0> x,
+      const Scalar<0, 0, 0, 0, 0> y);
+  friend Scalar<0, 0, 0, 0, 0> pow(double x, const Scalar<0, 0, 0, 0, 0> y);
+  friend Scalar<0, 0, 0, 0, 0> pow(const Scalar<0, 0, 0, 0, 0> x, double y);
+  friend Scalar<0, 0, 0, 0, 0> sqrt(const Scalar<0, 0, 0, 0, 0> x);
+  template<int V1, int V2, int V3, int V4, int V5>
+  friend constexpr Scalar<V1 / 2, V2 / 2, V3 / 2, V4 / 2, V5 / 2> sqrt(
+      const Scalar<V1, V2, V3, V4, V5> x);
 };
 
-typedef Scalar<0, 0, 0, 0> Dimensionless;
-typedef Scalar<0, 0, 0, 0> Number;
+typedef Scalar<0, 0, 0, 0, 0> Dimensionless;
+typedef Scalar<0, 0, 0, 0, 0> Number;
 
 template<>
 inline constexpr Dimensionless::Scalar(double value) : value_(value) {}
@@ -243,16 +245,16 @@ inline bool operator>=(double lhs, const Number rhs) {
   return lhs >= rhs.value_;
 }
 
-template<int U1, int U2, int U3, int U4>
-inline constexpr Scalar<U1, U2, U3, U4> operator*(
-    double lhs, const Scalar<U1, U2, U3, U4> rhs) {
-  return Scalar<U1, U2, U3, U4>(Double(lhs * rhs.value_));
+template<int U1, int U2, int U3, int U4, int U5>
+inline constexpr Scalar<U1, U2, U3, U4, U5> operator*(
+    double lhs, const Scalar<U1, U2, U3, U4, U5> rhs) {
+  return Scalar<U1, U2, U3, U4, U5>(Double(lhs * rhs.value_));
 }
 
-template<int U1, int U2, int U3, int U4>
-inline constexpr Scalar<-U1, -U2, -U3, -U4> operator/(
-    double lhs, const Scalar<U1, U2, U3, U4> rhs) {
-  return Scalar<-U1, -U2, -U3, -U4>(Double(lhs / rhs.value_));
+template<int U1, int U2, int U3, int U4, int U5>
+inline constexpr Scalar<-U1, -U2, -U3, -U4, -U5> operator/(
+    double lhs, const Scalar<U1, U2, U3, U4, U5> rhs) {
+  return Scalar<-U1, -U2, -U3, -U4, -U5>(Double(lhs / rhs.value_));
 }
 
 inline constexpr Number exp(const Number x) { return std::exp(x()); }
@@ -267,10 +269,11 @@ inline Number pow(const Number x, double y) { return std::pow(x(), y); }
 inline Number pow(double x, const Number y) { return std::pow(x, y()); }
 inline Number sqrt(const Number x) { return std::sqrt(x()); }
 
-template<int U1, int U2, int U3, int U4>
-constexpr Scalar<U1 / 2, U2 / 2, U3 / 2, U4 / 2> sqrt(
-    const Scalar<U1, U2, U3, U4> x) {
-  return Scalar<U1 / 2, U2 / 2, U3 / 2, U4 / 2>(Double(std::sqrt(x.value_)));
+template<int U1, int U2, int U3, int U4, int U5>
+constexpr Scalar<U1 / 2, U2 / 2, U3 / 2, U4 / 2, U5 / 2> sqrt(
+    const Scalar<U1, U2, U3, U4, U5> x) {
+  return Scalar<U1 / 2, U2 / 2, U3 / 2, U4 / 2, U5 / 2>(
+      Double(std::sqrt(x.value_)));
 }
 
 template<typename T>

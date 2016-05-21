@@ -55,26 +55,29 @@ struct Vector3 {
   }
 };
 
-template<int U1, int U2, int U3, int U4, int V1, int V2, int V3, int V4>
-inline Vector3<Scalar<U1 + V1, U2 + V2, U3 + V3, U4 + V4>> operator*(
-      const Vector3<Scalar<U1, U2, U3, U4>>& lhs,
-      const Scalar<V1, V2, V3, V4> rhs) {
-  return Vector3<Scalar<U1 + V1, U2 + V2, U3 + V3, U4 + V4>>(
+template<int U1, int U2, int U3, int U4, int U5,
+    int V1, int V2, int V3, int V4, int V5>
+inline Vector3<Scalar<U1 + V1, U2 + V2, U3 + V3, U4 + V4, U5 + V5>> operator*(
+    const Vector3<Scalar<U1, U2, U3, U4, U5>>& lhs,
+    const Scalar<V1, V2, V3, V4, V5> rhs) {
+  return Vector3<Scalar<U1 + V1, U2 + V2, U3 + V3, U4 + V4, U5 + V5>>(
       lhs.x * rhs, lhs.y * rhs, lhs.z * rhs);
 }
 
-template<int U1, int U2, int U3, int U4, int V1, int V2, int V3, int V4>
-inline Vector3<Scalar<U1 - V1, U2 - V2, U3 - V3, U4 - V4>> operator/(
-      const Vector3<Scalar<U1, U2, U3, U4>>& lhs,
-      const Scalar<V1, V2, V3, V4> rhs) {
-  return Vector3<Scalar<U1 - V1, U2 - V2, U3 - V3, U4 - V4>>(
+template<int U1, int U2, int U3, int U4, int U5,
+    int V1, int V2, int V3, int V4, int V5>
+inline Vector3<Scalar<U1 - V1, U2 - V2, U3 - V3, U4 - V4, U5 - V5>> operator/(
+    const Vector3<Scalar<U1, U2, U3, U4, U5>>& lhs,
+    const Scalar<V1, V2, V3, V4, V5>& rhs) {
+  return Vector3<Scalar<U1 - V1, U2 - V2, U3 - V3, U4 - V4, U5 - V5>>(
       lhs.x / rhs, lhs.y / rhs, lhs.z / rhs);
 }
 
-template<int U1, int U2, int U3, int U4, int V1, int V2, int V3, int V4>
-inline Scalar<U1 + V1, U2 + V2, U3 + V3, U4 + V4> dot(
-      const Vector3<Scalar<U1, U2, U3, U4>>& u,
-      const Vector3<Scalar<V1, V2, V3, V4>>& v) {
+template<int U1, int U2, int U3, int U4, int U5,
+    int V1, int V2, int V3, int V4, int V5>
+inline Scalar<U1 + V1, U2 + V2, U3 + V3, U4 + V4, U5 + V5> dot(
+    const Vector3<Scalar<U1, U2, U3, U4, U5>>& u,
+    const Vector3<Scalar<V1, V2, V3, V4, V5>>& v) {
   return u.x * v.x + u.y * v.y + u.z * v.z;
 }
 

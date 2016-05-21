@@ -33,14 +33,24 @@
 #include <string>
 
 #include "atmosphere/atmosphere.h"
+#include "atmosphere/measurement/measured_atmospheres.h"
 #include "math/angle.h"
 #include "math/binary_function.h"
+#include "math/hemispherical_function.h"
 #include "physics/spectrum.h"
 #include "physics/units.h"
 
 class LibRadtran : public Atmosphere {
  public:
-  LibRadtran(const std::string& libradtran_path, bool interpolate);
+  enum CacheType {
+    BINARY_FUNCTION_CACHE, HEMISPHERICAL_FUNCTION_CACHE
+  };
+
+  LibRadtran(const std::string& libradtran_uvspec, CacheType cache_type);
+
+  LibRadtran(const std::string& libradtran_uvspec, double mie_angstrom_alpha,
+      double mie_angstrom_beta, double mie_phase_function_g, bool ground_albedo,
+      CacheType cache_type);
 
   // Not implemented.
   virtual IrradianceSpectrum GetSunIrradiance(Length altitude,
@@ -49,17 +59,25 @@ class LibRadtran : public Atmosphere {
   virtual RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
       Angle view_zenith, Angle view_sun_azimuth) const;
 
+  virtual RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
+      Angle sun_azimuth, Angle view_zenith, Angle view_azimuth) const;
+
  private:
   static constexpr int kNumPhi = 120;
   static constexpr int kNumTheta = kNumPhi / 4;
   static constexpr Angle kDeltaPhi = 2.0 * pi / kNumPhi;
 
-  void MaybeComputeSkyDome(Angle sun_zenith) const;
+  void MaybeComputeBinaryFunctionCache(Angle sun_zenith) const;
+  void MaybeComputeHemisphericalFunctionCache(Angle sun_zenith,
+      Angle sun_azimuth) const;
 
-  std::string libradtran_path_;
-  bool interpolate_;
+  std::string libradtran_uvspec_;
+  CacheType cache_type_;
   mutable Angle current_sun_zenith_;
-  mutable BinaryFunction<kNumTheta, kNumPhi / 2, RadianceSpectrum> sky_dome_;
+  mutable Angle current_sun_azimuth_;
+  mutable BinaryFunction<kNumTheta, kNumPhi / 2, RadianceSpectrum>
+      binary_function_cache_;
+  mutable HemisphericalFunction<RadianceSpectrum> hemispherical_function_cache_;
 };
 
 #endif  // ATMOSPHERE_MODEL_LIBRADTRAN_LIBRADTRAN_H_

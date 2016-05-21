@@ -51,6 +51,11 @@ class HemisphericalFunction {
     return value_[i][j];
   }
 
+  inline T& Get(int i, int j) {
+    assert(i >= 0 && i < 9 && j >= 0 && j < 9);
+    return value_[i][j];
+  }
+
   inline void Set(int i, int j, const T& value) {
     assert(i >= 0 && i < 9 && j >= 0 && j < 9);
     value_[i][j] = value;
@@ -62,7 +67,7 @@ class HemisphericalFunction {
     double phi;
     ToUnitDisk((i + 0.5) / 9, (j + 0.5) / 9, &r, &phi);
     *view_zenith = acos(1.0 - r * r) * rad;
-    *view_azimuth = phi *rad;
+    *view_azimuth = phi * rad;
   }
 
   T operator()(Angle view_zenith, Angle view_azimuth) const {

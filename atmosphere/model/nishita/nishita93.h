@@ -40,11 +40,13 @@ class Nishita93 : public Atmosphere {
  public:
   Nishita93();
 
-  virtual IrradianceSpectrum GetSunIrradiance(Length altitude,
-      Angle sun_zenith) const;
+  int GetOriginalNumberOfWavelengths() const override { return 3; }
 
-  virtual RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
-      Angle view_zenith, Angle view_sun_azimuth) const;
+  IrradianceSpectrum GetSunIrradiance(Length altitude,
+      Angle sun_zenith) const override;
+
+  RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
+      Angle view_zenith, Angle view_sun_azimuth) const override;
 
  protected:
   // Returns the optical lengths for rayleigh and mie particles between a point

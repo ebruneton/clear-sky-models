@@ -43,7 +43,8 @@
 // simulation results with or without taking polarization into account.
 class PolRadtran : public Atmosphere {
  public:
-  PolRadtran(const std::string& libradtran_path, bool polarization);
+  PolRadtran(const std::string& libradtran_uvspec,
+      const std::string& libradtran_data, bool polarization);
 
   // Not implemented.
   virtual IrradianceSpectrum GetSunIrradiance(Length altitude,
@@ -59,7 +60,8 @@ class PolRadtran : public Atmosphere {
 
   void MaybeComputeSkyDome(Angle sun_zenith) const;
 
-  std::string libradtran_path_;
+  std::string libradtran_uvspec_;
+  std::string libradtran_data_;
   bool polarization_;
   mutable Angle current_sun_zenith_;
   mutable BinaryFunction<kNumTheta, kNumPhi / 2, RadianceSpectrum> sky_dome_;

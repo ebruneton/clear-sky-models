@@ -29,6 +29,7 @@
 */
 #include "physics/cie.h"
 
+#include <algorithm>
 #include <vector>
 
 namespace {
@@ -37,6 +38,9 @@ struct Tables {
   std::vector<Dimensionless> x_bar_samples;
   std::vector<Dimensionless> y_bar_samples;
   std::vector<Dimensionless> z_bar_samples;
+  std::vector<Dimensionless> S0_samples;
+  std::vector<Dimensionless> S1_samples;
+  std::vector<Dimensionless> S2_samples;
 
   Tables() {
     // Values from "CIE (1931) 2-deg color matching functions", see
@@ -139,6 +143,57 @@ struct Tables {
     Add(0.000001776509, 0.000000641530, 0.000000000000);
     Add(0.000001251141, 0.000000451810, 0.000000000000);
     Add(0.000000000000, 0.000000000000, 0.000000000000);
+
+    // Values from Table T.2 in CIE TR "Colorimetry" 15:2004 Third Edition
+    // (ISBN 3 901 906 33 9).
+    AddS(+61.5,  38.0,  5.3);
+    AddS(+68.8,  42.4,  6.1);
+    AddS(+63.4,  38.5,  3.0);
+    AddS(+65.8,  35.0,  1.2);
+    AddS(+94.8,  43.4, -1.1);
+    AddS(104.8,  46.3, -0.5);
+    AddS(105.9,  43.9, -0.7);
+    AddS(+96.8,  37.1, -1.2);
+    AddS(113.9,  36.7, -2.6);
+    AddS(125.6,  35.9, -2.9);
+    AddS(125.5,  32.6, -2.8);
+    AddS(121.3,  27.9, -2.6);
+    AddS(121.3,  24.3, -2.6);
+    AddS(113.5,  20.1, -1.8);
+    AddS(113.1,  16.2, -1.5);
+    AddS(110.8,  13.2, -1.3);
+    AddS(106.5,   8.6, -1.2);
+    AddS(108.8,   6.1, -1.0);
+    AddS(105.3,   4.2, -0.5);
+    AddS(104.4,   1.9, -0.3);
+    AddS(100.0,   0.0,  0.0);
+    AddS(+96.0,  -1.6,  0.2);
+    AddS(+95.1,  -3.5,  0.5);
+    AddS(+89.1,  -3.5,  2.1);
+    AddS(+90.5,  -5.8,  3.2);
+    AddS(+90.3,  -7.2,  4.1);
+    AddS(+88.4,  -8.6,  4.7);
+    AddS(+84.0,  -9.5,  5.1);
+    AddS(+85.1, -10.9,  6.7);
+    AddS(+81.9, -10.7,  7.3);
+    AddS(+82.6, -12.0,  8.6);
+    AddS(+84.9, -14.0,  9.8);
+    AddS(+81.3, -13.6, 10.2);
+    AddS(+71.9, -12.0,  8.3);
+    AddS(+74.3, -13.3,  9.6);
+    AddS(+76.4, -12.9,  8.5);
+    AddS(+63.3, -10.6,  7.0);
+    AddS(+71.7, -11.6,  7.6);
+    AddS(+77.0, -12.2,  8.0);
+    AddS(+65.2, -10.2,  6.7);
+    AddS(+47.7,  -7.8,  5.2);
+    AddS(+68.6, -11.2,  7.4);
+    AddS(+65.0, -10.4,  6.8);
+    AddS(+66.0, -10.6,  7.0);
+    AddS(+61.0,  -9.7,  6.4);
+    AddS(+53.3,  -8.3,  5.5);
+    AddS(+58.9,  -9.3,  6.1);
+    AddS(+61.9,  -9.8,  6.5);
   }
 
  private:
@@ -147,15 +202,58 @@ struct Tables {
     y_bar_samples.push_back(y_bar_sample);
     z_bar_samples.push_back(z_bar_sample);
   }
+
+  void AddS(double s0_sample, double s1_sample, double s2_sample) {
+    S0_samples.push_back(s0_sample);
+    S1_samples.push_back(s1_sample);
+    S2_samples.push_back(s2_sample);
+  }
 };
 
 const Tables tables = Tables();
 const DimensionlessSpectrum x_bar(355.0 * nm, 835.0 * nm, tables.x_bar_samples);
 const DimensionlessSpectrum y_bar(355.0 * nm, 835.0 * nm, tables.y_bar_samples);
 const DimensionlessSpectrum z_bar(355.0 * nm, 835.0 * nm, tables.z_bar_samples);
+const DimensionlessSpectrum S0(360.0 * nm, 830.0 * nm, tables.S0_samples);
+const DimensionlessSpectrum S1(360.0 * nm, 830.0 * nm, tables.S1_samples);
+const DimensionlessSpectrum S2(360.0 * nm, 830.0 * nm, tables.S2_samples);
 
 }  // anonymous namespace
 
 const DimensionlessSpectrum& cie_x_bar_function() { return x_bar; }
 const DimensionlessSpectrum& cie_y_bar_function() { return y_bar; }
 const DimensionlessSpectrum& cie_z_bar_function() { return z_bar; }
+
+const DimensionlessSpectrum& S0_function() { return S0; }
+const DimensionlessSpectrum& S1_function() { return S1; }
+const DimensionlessSpectrum& S2_function() { return S2; }
+
+Luminance GetLuminance(const RadianceSpectrum& spectrum) {
+  return MaxLuminousEfficacy * Integral(y_bar * spectrum);
+}
+
+Color GetSrgbColor(const RadianceSpectrum& spectrum) {
+  Color RGB = XYZ_to_sRGB * Color(
+      MaxLuminousEfficacy * Integral(cie_x_bar_function() * spectrum),
+      MaxLuminousEfficacy * Integral(cie_y_bar_function() * spectrum),
+      MaxLuminousEfficacy * Integral(cie_z_bar_function() * spectrum));
+  return Color(
+      std::max(RGB.x, 0.0 * cd_per_square_meter),
+      std::max(RGB.y, 0.0 * cd_per_square_meter),
+      std::max(RGB.z, 0.0 * cd_per_square_meter));
+}
+
+Color GetSrgbColor(const RadianceSpectrum& spectrum, Wavelength min_wavelength,
+    Wavelength max_wavelength, int number_of_wavelengths) {
+  Color RGB = XYZ_to_sRGB * Color(
+      MaxLuminousEfficacy * Integral(cie_x_bar_function() * spectrum,
+          min_wavelength, max_wavelength, number_of_wavelengths),
+      MaxLuminousEfficacy * Integral(cie_y_bar_function() * spectrum,
+          min_wavelength, max_wavelength, number_of_wavelengths),
+      MaxLuminousEfficacy * Integral(cie_z_bar_function() * spectrum,
+          min_wavelength, max_wavelength, number_of_wavelengths));
+  return Color(
+      std::max(RGB.x, 0.0 * cd_per_square_meter),
+      std::max(RGB.y, 0.0 * cd_per_square_meter),
+      std::max(RGB.z, 0.0 * cd_per_square_meter));
+}

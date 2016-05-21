@@ -83,7 +83,7 @@ const unsigned int RES_MU = 128;
 const unsigned int RES_MU_S = 32;
 const unsigned int RES_NU = 8;
 
-typedef Scalar<-3, -1, -1, 1> SpectralRadianceDensity;
+typedef Scalar<-3, -1, -1, 1, 0> SpectralRadianceDensity;
 
 typedef WavelengthFunction<SpectralRadianceDensity> RadianceDensitySpectrum;
 

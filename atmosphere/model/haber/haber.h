@@ -47,17 +47,19 @@ class Haber : public Atmosphere {
 
   explicit Haber(ScatteringType scattering_type);
 
-  virtual IrradianceSpectrum GetSunIrradiance(Length altitude,
-      Angle sun_zenith) const;
+  int GetOriginalNumberOfWavelengths() const override { return 8; }
 
-  virtual RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
-      Angle view_zenith, Angle view_sun_azimuth) const;
+  IrradianceSpectrum GetSunIrradiance(Length altitude,
+      Angle sun_zenith) const override;
+
+  RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
+      Angle view_zenith, Angle view_sun_azimuth) const override;
 
  private:
   static constexpr int kNumLayers = 50;
   static constexpr Length kMaxLayerHeight = 35.0 * km;
 
-  static constexpr int kNumPhi = 72;  // 120;
+  static constexpr int kNumPhi = 72;
   static constexpr Angle kDeltaPhi = 2.0 * pi / kNumPhi;
 
   static constexpr Length kMinShellRadius = 10.0 * m;

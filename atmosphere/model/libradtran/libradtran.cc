@@ -32,7 +32,10 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <set>
 #include <sstream>
+#include <utility>
 
 namespace {
 
@@ -56,22 +59,94 @@ double Legendre(int k, double x) {
   }
 }
 
-double MiePhaseFunctionMoment(int k) {
+double MiePhaseFunctionMoment(double g, int k) {
   constexpr int kNumSamples = 1000;
   double sum = 0.0;
   for (int i = 0; i < kNumSamples; ++i) {
     double mu = (i + 0.5) / kNumSamples;
-    sum += Legendre(k, mu) * MiePhaseFunction(mu).to(1.0 / sr);
+    sum += Legendre(k, mu) * MiePhaseFunction(g, mu).to(1.0 / sr);
   }
   return sum / (2.0 * kNumSamples);
+}
+
+void GetHemisphericalFunctionZenithAndAzimuthSets(std::set<Angle>* view_zeniths,
+    std::set<Angle>* view_azimuths) {
+  for (int i = 0; i < 9; ++i) {
+    for (int j = 0; j < 9; ++j) {
+      Angle view_zenith;
+      Angle view_azimuth;
+      HemisphericalFunction<Number>::GetSampleDirection(
+          i, j, &view_zenith, &view_azimuth);
+      if (view_azimuth < 0.0 * deg) {
+        view_azimuth = view_azimuth + 2.0 * pi;
+      }
+      view_azimuth = round(view_azimuth.to(0.25 * deg)) * 0.25 * deg;
+      view_zeniths->insert(view_zenith);
+      view_azimuths->insert(view_azimuth);
+    }
+  }
+}
+
+// Map from (x,y) coordinates in a regular grid constructed with the set of
+// zenith and azimuth angles of a HemisphericalFunction, to the corresponding
+// (i,j) coordinates in HemisphericalFunction.
+typedef std::map<std::pair<int, int>, std::pair<int, int>>
+    GridToHemisphericalMap;
+
+GridToHemisphericalMap GetGridToHemisphericalMap(
+    const std::set<Angle>& view_zeniths, const std::set<Angle>& view_azimuths) {
+  GridToHemisphericalMap result;
+  for (int i = 0; i < 9; ++i) {
+    for (int j = 0; j < 9; ++j) {
+      Angle view_zenith;
+      Angle view_azimuth;
+      HemisphericalFunction<Number>::GetSampleDirection(
+          i, j, &view_zenith, &view_azimuth);
+      if (view_azimuth < 0.0 * deg) {
+        view_azimuth = view_azimuth + 2.0 * pi;
+      }
+      view_azimuth = round(view_azimuth.to(0.25 * deg)) * 0.25 * deg;
+      int x = std::distance(view_zeniths.begin(),
+          view_zeniths.find(view_zenith));
+      int y = std::distance(view_azimuths.begin(),
+          view_azimuths.find(view_azimuth));
+      assert(result.find(std::make_pair(x, y)) == result.end());
+      result[std::make_pair(x, y)] = std::make_pair(i, j);
+    }
+  }
+  return result;
+}
+
+std::string libradtran(const std::string& libradtran_uvspec) {
+  const std::string cmd =
+      libradtran_uvspec + " -i output/libradtran/input.txt";
+  FILE* pipe = popen(cmd.c_str(), "r");
+  assert(pipe);
+  char buffer[256];
+  std::string output = "";
+  while (!feof(pipe)) {
+    if (fgets(buffer, 256, pipe) != NULL) {
+      output += buffer;
+    }
+  }
+  pclose(pipe);
+  return output;
 }
 
 }  // anonymous namespace
 
 constexpr Angle LibRadtran::kDeltaPhi;
 
-LibRadtran::LibRadtran(const std::string& libradtran_path, bool interpolate)
-    : libradtran_path_(libradtran_path), interpolate_(interpolate) {
+LibRadtran::LibRadtran(const std::string& libradtran_uvspec,
+    CacheType cache_type)
+    : LibRadtran(libradtran_uvspec, MieAngstromAlpha, MieAngstromBeta,
+        MiePhaseFunctionG, true /* ground_albedo */, cache_type) {
+}
+
+LibRadtran::LibRadtran(const std::string& libradtran_uvspec,
+    double mie_angstrom_alpha, double mie_angstrom_beta,
+    double mie_phase_function_g, bool ground_albedo, CacheType cache_type)
+    : libradtran_uvspec_(libradtran_uvspec), cache_type_(cache_type) {
   // Source: solar spectrum.
   IrradianceSpectrum solar = SolarSpectrum();
   std::ofstream source("output/libradtran/solar_spectrum.txt");
@@ -122,10 +197,12 @@ LibRadtran::LibRadtran(const std::string& libradtran_path, bool interpolate)
   constexpr int kNumMoments = 20;
   double moments[kNumMoments];
   for (int i = 0; i < kNumMoments; ++i) {
-    moments[i] = MiePhaseFunctionMoment(i);
+    moments[i] = MiePhaseFunctionMoment(mie_phase_function_g, i);
   }
-  ScatteringSpectrum mie_scattering = MieScattering();
-  ScatteringSpectrum mie_extinction = MieExtinction();
+  ScatteringSpectrum mie_scattering =
+      MieScattering(mie_angstrom_alpha, mie_angstrom_beta);
+  ScatteringSpectrum mie_extinction =
+      MieExtinction(mie_angstrom_alpha, mie_angstrom_beta);
   std::ofstream aerosol_properties("output/libradtran/aerosol_properties.txt");
   for (int i = 0; i < kNumLayers + 1; ++i) {
     std::stringstream os;
@@ -148,13 +225,13 @@ LibRadtran::LibRadtran(const std::string& libradtran_path, bool interpolate)
   aerosol_properties.close();
 
   // Ground: albedo.
-  std::ofstream albedo("output/libradtran/albedo.txt");
-  DimensionlessSpectrum ground_albedo = GroundAlbedo();
-  for (unsigned int i = 0; i < ground_albedo.size(); ++i) {
-    albedo << ground_albedo.GetWavelength(i).to(nm) << " " << ground_albedo[i]()
-        << std::endl;
+  std::ofstream albedo_stream("output/libradtran/albedo.txt");
+  DimensionlessSpectrum albedo = GroundAlbedo();
+  for (unsigned int i = 0; i < albedo.size(); ++i) {
+    albedo_stream << albedo.GetWavelength(i).to(nm) << " "
+                  << (ground_albedo ? albedo[i]() : 0.0) << std::endl;
   }
-  albedo.close();
+  albedo_stream.close();
 
   // libRadtran input model file.
   std::ofstream model("output/libradtran/model.txt");
@@ -195,9 +272,16 @@ IrradianceSpectrum LibRadtran::GetSunIrradiance(Length altitude,
 
 RadianceSpectrum LibRadtran::GetSkyRadiance(Length altitude, Angle sun_zenith,
     Angle view_zenith, Angle view_sun_azimuth) const {
+  return GetSkyRadiance(
+      altitude, sun_zenith, 0.0 * deg, view_zenith, view_sun_azimuth);
+}
+
+RadianceSpectrum LibRadtran::GetSkyRadiance(Length altitude, Angle sun_zenith,
+    Angle sun_azimuth, Angle view_zenith, Angle view_azimuth) const {
   assert(altitude == 0.0 * m);
-  if (interpolate_) {
-    MaybeComputeSkyDome(sun_zenith);
+  if (cache_type_ == BINARY_FUNCTION_CACHE) {
+    MaybeComputeBinaryFunctionCache(sun_zenith);
+    Angle view_sun_azimuth = view_azimuth - sun_azimuth;
     if (view_sun_azimuth < 0.0 * deg) {
       view_sun_azimuth = -view_sun_azimuth;
     }
@@ -209,49 +293,14 @@ RadianceSpectrum LibRadtran::GetSkyRadiance(Length altitude, Angle sun_zenith,
     }
     Number u = view_zenith / (kNumTheta * kDeltaPhi);
     Number v = view_sun_azimuth / (kNumPhi / 2 * kDeltaPhi);
-    return sky_dome_(u(), v());
+    return binary_function_cache_(u(), v());
   } else {
-    std::cout << "sun_zenith: " << sun_zenith.to(deg) << ", view_zenith: "
-        << view_zenith.to(deg) << ", azimuth: "
-        << std::abs(view_sun_azimuth.to(deg)) << std::endl;
-    RadianceSpectrum result(0.0 * watt_per_square_meter_per_sr_per_nm);
-
-    std::ofstream input("output/libradtran/input.txt");
-    input << "include output/libradtran/model.txt" << std::endl;
-    input << "sza " << sun_zenith.to(deg) << std::endl;
-    input << "phi0 0.0" << std::endl;
-    input << "umu " << -cos(view_zenith)() << std::endl;
-    input << "phi " << std::abs(view_sun_azimuth.to(deg)) << std::endl;
-    input.close();
-
-    const std::string cmd =
-        libradtran_path_ + "bin/uvspec -i output/libradtran/input.txt";
-    FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) {
-      return result;
-    }
-    char buffer[256];
-    std::string output = "";
-    while (!feof(pipe)) {
-      if (fgets(buffer, 256, pipe) != NULL) {
-        output += buffer;
-      }
-    }
-    pclose(pipe);
-
-    std::stringstream string_stream(output);
-    for (unsigned int i = 0; i < result.size(); ++i) {
-      double lambda;
-      double radiance;
-      string_stream >> lambda >> radiance;
-      assert(lambda == result.GetWavelength(i).to(nm));
-      result[i] = radiance * watt_per_square_meter_per_sr_per_nm;
-    }
-    return result;
+    MaybeComputeHemisphericalFunctionCache(sun_zenith, sun_azimuth);
+    return hemispherical_function_cache_(view_zenith, view_azimuth);
   }
 }
 
-void LibRadtran::MaybeComputeSkyDome(Angle sun_zenith) const {
+void LibRadtran::MaybeComputeBinaryFunctionCache(Angle sun_zenith) const {
   if (current_sun_zenith_ == sun_zenith) {
     return;
   }
@@ -274,32 +323,72 @@ void LibRadtran::MaybeComputeSkyDome(Angle sun_zenith) const {
   input << std::endl;
   input.close();
 
-  const std::string cmd =
-      libradtran_path_ + "bin/uvspec -i output/libradtran/input.txt";
-  FILE* pipe = popen(cmd.c_str(), "r");
-  if (!pipe) {
-    return;
-  }
-  char buffer[256];
-  std::string output = "";
-  while (!feof(pipe)) {
-    if (fgets(buffer, 256, pipe) != NULL) {
-      output += buffer;
-    }
-  }
-  pclose(pipe);
-
-  const auto& spectrum = sky_dome_.Get(0, 0);
-  std::stringstream string_stream(output);
+  const auto& spectrum = binary_function_cache_.Get(0, 0);
+  std::stringstream string_stream(libradtran(libradtran_uvspec_));
   for (unsigned int i = 0; i < spectrum.size(); ++i) {
     double lambda;
-    double radiance;
     string_stream >> lambda;
-    assert(lambda == spectrum.GetWavelength(i).to(nm));
+    assert(lambda * nm == spectrum.GetWavelength(i));
     for (int j = 0; j < kNumTheta; ++j) {
       for (int k = 0; k < kNumPhi / 2; ++k) {
+        double radiance;
         string_stream >> radiance;
-        sky_dome_.Get(j, k)[i] = radiance * watt_per_square_meter_per_sr_per_nm;
+        binary_function_cache_.Get(j, k)[i] =
+            radiance * watt_per_square_meter_per_sr_per_nm;
+      }
+    }
+  }
+}
+
+void LibRadtran::MaybeComputeHemisphericalFunctionCache(Angle sun_zenith,
+    Angle sun_azimuth) const {
+  if (current_sun_zenith_ == sun_zenith &&
+      current_sun_azimuth_ == sun_azimuth) {
+    return;
+  }
+  current_sun_zenith_ = sun_zenith;
+  current_sun_azimuth_ = sun_azimuth;
+
+  std::set<Angle> view_zeniths;
+  std::set<Angle> view_azimuths;
+  GetHemisphericalFunctionZenithAndAzimuthSets(&view_zeniths, &view_azimuths);
+
+  GridToHemisphericalMap grid_to_hemispherical =
+      GetGridToHemisphericalMap(view_zeniths, view_azimuths);
+
+  std::ofstream input("output/libradtran/input.txt");
+  input << "include output/libradtran/model.txt" << std::endl;
+  input << "sza " << sun_zenith.to(deg) << std::endl;
+  input << "phi0 " << sun_azimuth.to(deg) << std::endl;
+  input << "umu";
+  for (Angle view_zenith : view_zeniths) {
+    input << " " << -cos(view_zenith)();
+  }
+  input << std::endl << "phi";
+  for (Angle view_azimuth : view_azimuths) {
+    input << " " << view_azimuth.to(deg);
+  }
+  input << std::endl;
+  input.close();
+
+  RadianceSpectrum spectrum;
+  std::stringstream string_stream(libradtran(libradtran_uvspec_));
+  for (unsigned int l = 0; l < spectrum.size(); ++l) {
+    double lambda;
+    string_stream >> lambda;
+    assert(lambda * nm == spectrum.GetWavelength(l));
+    for (unsigned int x = 0; x < view_zeniths.size(); ++x) {
+      for (unsigned int y = 0; y < view_azimuths.size(); ++y) {
+        double radiance;
+        string_stream >> radiance;
+        GridToHemisphericalMap::iterator it =
+            grid_to_hemispherical.find(std::make_pair(x, y));
+        if (it != grid_to_hemispherical.end()) {
+          int i = it->second.first;
+          int j = it->second.second;
+          hemispherical_function_cache_.Get(i, j)[l] =
+              radiance * watt_per_square_meter_per_sr_per_nm;
+        }
       }
     }
   }

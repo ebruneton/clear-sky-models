@@ -47,7 +47,7 @@ class Nishita96 : public Nishita93 {
   explicit Nishita96(ScatteringType scattering_type);
 
   RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
-      Angle view_zenith, Angle view_sun_azimuth) const;
+      Angle view_zenith, Angle view_sun_azimuth) const override;
 
  private:
   static constexpr int kNumSteps = 33;

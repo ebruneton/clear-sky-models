@@ -40,31 +40,31 @@ class TestScalar : public TestCase {
       : TestCase("TestScalar " + name, static_cast<Test>(test)) {}
 
   void TestScalars() {
-    Scalar<1, 2, 3, 4> a = Scalar<1, 2, 3, 4>::Unit();
-    Scalar<1, 2, 3, 4> b = 2.0 * a;
-    Scalar<1, 2, 3, 4> c = a + b;
-    Scalar<1, 2, 3, 4> d = c - b;
-    Scalar<10, 20, 30, 40> k = 4.0 * Scalar<10, 20, 30, 40>::Unit();
-    Scalar<11, 22, 33, 44> kc = k * c;
-    Scalar<11, 22, 33, 44> ck = c * k;
-    Scalar<1, 2, 3, 4> e = c * 3.0;
-    Scalar<9, 18, 27, 36> koc = k / c;
-    Scalar<-9, -18, -27, -36> cok = c / k;
-    Scalar<1, 2, 3, 4> f = e / 3.0;
+    Scalar<1, 2, 3, 4, 5> a = Scalar<1, 2, 3, 4, 5>::Unit();
+    Scalar<1, 2, 3, 4, 5> b = 2.0 * a;
+    Scalar<1, 2, 3, 4, 5> c = a + b;
+    Scalar<1, 2, 3, 4, 5> d = c - b;
+    Scalar<10, 20, 30, 40, 50> k = 4.0 * Scalar<10, 20, 30, 40, 50>::Unit();
+    Scalar<11, 22, 33, 44, 55> kc = k * c;
+    Scalar<11, 22, 33, 44, 55> ck = c * k;
+    Scalar<1, 2, 3, 4, 5> e = c * 3.0;
+    Scalar<9, 18, 27, 36, 45> koc = k / c;
+    Scalar<-9, -18, -27, -36, -45> cok = c / k;
+    Scalar<1, 2, 3, 4, 5> f = e / 3.0;
     f += a;
-    Scalar<1, 2, 3, 4> g = -e;
-    Scalar<-1, -2, -3, -4> h = 9.0 / g;
+    Scalar<1, 2, 3, 4, 5> g = -e;
+    Scalar<-1, -2, -3, -4, -5> h = 9.0 / g;
     ExpectEquals(2.0, b.to(a));
     ExpectEquals(3.0, c.to(a));
     ExpectEquals(1.0, d.to(a));
-    ExpectEquals(12.0, kc.to(Scalar<11, 22, 33, 44>::Unit()));
-    ExpectEquals(12.0, ck.to(Scalar<11, 22, 33, 44>::Unit()));
+    ExpectEquals(12.0, kc.to(Scalar<11, 22, 33, 44, 55>::Unit()));
+    ExpectEquals(12.0, ck.to(Scalar<11, 22, 33, 44, 55>::Unit()));
     ExpectEquals(9.0, e.to(a));
-    ExpectEquals(4.0 / 3.0, koc.to(Scalar<9, 18, 27, 36>::Unit()));
-    ExpectEquals(3.0 / 4.0, cok.to(Scalar<-9, -18, -27, -36>::Unit()));
+    ExpectEquals(4.0 / 3.0, koc.to(Scalar<9, 18, 27, 36, 45>::Unit()));
+    ExpectEquals(3.0 / 4.0, cok.to(Scalar<-9, -18, -27, -36, -45>::Unit()));
     ExpectEquals(4.0, f.to(a));
     ExpectEquals(-9.0, g.to(a));
-    ExpectEquals(-1.0, h.to(Scalar<-1, -2, -3, -4>::Unit()));
+    ExpectEquals(-1.0, h.to(Scalar<-1, -2, -3, -4, -5>::Unit()));
     ExpectTrue(a == a);
     ExpectFalse(a == b);
     ExpectTrue(a < b);
@@ -111,7 +111,7 @@ class TestScalar : public TestCase {
   }
 
   void TestMath() {
-    Scalar<1, 2, 3, 4> a = Scalar<1, 2, 3, 4>::Unit();
+    Scalar<1, 2, 3, 4, 5> a = Scalar<1, 2, 3, 4, 5>::Unit();
     ExpectEquals(Number(std::exp(1.0)), exp(Number(1.0)));
     ExpectEquals(Number(4.0), floor(Number(4.8)));
     ExpectEquals(Number(std::log(2.0)), log(Number(2.0)));

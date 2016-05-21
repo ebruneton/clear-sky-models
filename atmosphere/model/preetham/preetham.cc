@@ -59,72 +59,52 @@ class PerezFunction {
 };
 
 struct Tables {
-  std::vector<Dimensionless> S0_samples;
-  std::vector<Dimensionless> S1_samples;
-  std::vector<Dimensionless> S2_samples;
   std::vector<ScatteringCoefficient> ozone_samples;
   std::vector<ScatteringCoefficient> vapor_samples;
   std::vector<Dimensionless> gas_samples;
 
   Tables() {
-    // Values from Table 2 in Preetham 1999 and
-    // CIE TR "Colorimetry" 15:2004 Third Edition (ISBN 3 901 906 33 9)
-    Add(+61.5,  38.0,  5.3,  0.0,   0.0,  0.0);
-    Add(+68.8,  42.4,  6.1,  0.0,   0.0,  0.0);
-    Add(+63.4,  38.5,  3.0,  0.0,   0.0,  0.0);
-    Add(+65.8,  35.0,  1.2,  0.0,   0.0,  0.0);
-    Add(+94.8,  43.4, -1.1,  0.0,   0.0,  0.0);
-    Add(104.8,  46.3, -0.5,  0.0,   0.0,  0.0);
-    Add(105.9,  43.9, -0.7,  0.0,   0.0,  0.0);
-    Add(+96.8,  37.1, -1.2,  0.0,   0.0,  0.0);
-    Add(113.9,  36.7, -2.6,  0.0,   0.0,  0.0);
-    Add(125.6,  35.9, -2.9,  0.3,   0.0,  0.0);
-    Add(125.5,  32.6, -2.8,  0.6,   0.0,  0.0);
-    Add(121.3,  27.9, -2.6,  0.9,   0.0,  0.0);
-    Add(121.3,  24.3, -2.6,  1.4,   0.0,  0.0);
-    Add(113.5,  20.1, -1.8,  2.1,   0.0,  0.0);
-    Add(113.1,  16.2, -1.5,  3.0,   0.0,  0.0);
-    Add(110.8,  13.2, -1.3,  4.0,   0.0,  0.0);
-    Add(106.5,   8.6, -1.2,  4.8,   0.0,  0.0);
-    Add(108.8,   6.1, -1.0,  6.3,   0.0,  0.0);
-    Add(105.3,   4.2, -0.5,  7.5,   0.0,  0.0);
-    Add(104.4,   1.9, -0.3,  8.5,   0.0,  0.0);
-    Add(100.0,   0.0,  0.0, 10.3,   0.0,  0.0);
-    Add(+96.0,  -1.6,  0.2, 12.0,   0.0,  0.0);
-    Add(+95.1,  -3.5,  0.5, 12.0,   0.0,  0.0);
-    Add(+89.1,  -3.5,  2.1, 11.5,   0.0,  0.0);
-    Add(+90.5,  -5.8,  3.2, 12.5,   0.0,  0.0);
-    Add(+90.3,  -7.2,  4.1, 12.0,   0.0,  0.0);
-    Add(+88.4,  -8.6,  4.7, 10.5,   0.0,  0.0);
-    Add(+84.0,  -9.5,  5.1,  9.0,   0.0,  0.0);
-    Add(+85.1, -10.9,  6.7,  7.9,   0.0,  0.0);
-    Add(+81.9, -10.7,  7.3,  6.7,   0.0,  0.0);
-    Add(+82.6, -12.0,  8.6,  5.7,   0.0,  0.0);
-    Add(+84.9, -14.0,  9.8,  4.8,   0.0,  0.0);
-    Add(+81.3, -13.6, 10.2,  3.6,   0.0,  0.0);
-    Add(+71.9, -12.0,  8.3,  2.8,   1.6,  0.0);
-    Add(+74.3, -13.3,  9.6,  2.3,   2.4,  0.0);
-    Add(+76.4, -12.9,  8.5,  1.8,  1.25,  0.0);
-    Add(+63.3, -10.6,  7.0,  1.4, 100.0,  0.0);
-    Add(+71.7, -11.6,  7.6,  1.1,  87.0,  0.0);
-    Add(+77.0, -12.2,  8.0,  1.0,   6.1,  0.0);
-    Add(+65.2, -10.2,  6.7,  0.9,   0.1,  0.0);
-    Add(+47.7,  -7.8,  5.2,  0.7, 0.001,  3.0);
-    Add(+68.6, -11.2,  7.4,  0.4, 0.001, 0.21);
-    Add(+65.0, -10.4,  6.8,  0.0,  0.06,  0.0);
-    Add(+66.0, -10.6,  7.0,  0.0,   0.0,  0.0);
-    Add(+61.0,  -9.7,  6.4,  0.0,   0.0,  0.0);
-    Add(+53.3,  -8.3,  5.5,  0.0,   0.0,  0.0);
-    Add(+58.9,  -9.3,  6.1,  0.0,   0.0,  0.0);
-    Add(+61.9,  -9.8,  6.5,  0.0,   0.0,  0.0);
+    // Values from Table 2 in Preetham 1999.
+    Add(0.0,   0.0,  0.0);
+    Add(0.3,   0.0,  0.0);
+    Add(0.6,   0.0,  0.0);
+    Add(0.9,   0.0,  0.0);
+    Add(1.4,   0.0,  0.0);
+    Add(2.1,   0.0,  0.0);
+    Add(3.0,   0.0,  0.0);
+    Add(4.0,   0.0,  0.0);
+    Add(4.8,   0.0,  0.0);
+    Add(6.3,   0.0,  0.0);
+    Add(7.5,   0.0,  0.0);
+    Add(8.5,   0.0,  0.0);
+    Add(10.3,   0.0,  0.0);
+    Add(12.0,   0.0,  0.0);
+    Add(12.0,   0.0,  0.0);
+    Add(11.5,   0.0,  0.0);
+    Add(12.5,   0.0,  0.0);
+    Add(12.0,   0.0,  0.0);
+    Add(10.5,   0.0,  0.0);
+    Add(9.0,   0.0,  0.0);
+    Add(7.9,   0.0,  0.0);
+    Add(6.7,   0.0,  0.0);
+    Add(5.7,   0.0,  0.0);
+    Add(4.8,   0.0,  0.0);
+    Add(3.6,   0.0,  0.0);
+    Add(2.8,   1.6,  0.0);
+    Add(2.3,   2.4,  0.0);
+    Add(1.8,  1.25,  0.0);
+    Add(1.4, 100.0,  0.0);
+    Add(1.1,  87.0,  0.0);
+    Add(1.0,   6.1,  0.0);
+    Add(0.9,   0.1,  0.0);
+    Add(0.7, 0.001,  3.0);
+    Add(0.4, 0.001, 0.21);
+    Add(0.0,  0.06,  0.0);
+    Add(0.0,   0.0,  0.0);
   }
 
  private:
-  void Add(double S0_sample, double S1_sample, double S2_sample,
-      double ozone_sample, double vapor_sample, double gas_sample) {
-    S0_samples.push_back(S0_sample);
-    S1_samples.push_back(S1_sample);
-    S2_samples.push_back(S2_sample);
+  void Add(double ozone_sample, double vapor_sample, double gas_sample) {
     ozone_samples.push_back(ozone_sample / m);
     vapor_samples.push_back(vapor_sample / m);
     gas_samples.push_back(gas_sample);
@@ -132,28 +112,13 @@ struct Tables {
 };
 
 const Tables tables = Tables();
-const DimensionlessSpectrum S0(360.0 * nm, 830.0 * nm, tables.S0_samples);
-const DimensionlessSpectrum S1(360.0 * nm, 830.0 * nm, tables.S1_samples);
-const DimensionlessSpectrum S2(360.0 * nm, 830.0 * nm, tables.S2_samples);
-const ScatteringSpectrum k_ozone(360.0 * nm, 830.0 * nm, tables.ozone_samples);
-const ScatteringSpectrum k_vapor(360.0 * nm, 830.0 * nm, tables.vapor_samples);
-const DimensionlessSpectrum k_gas(360.0 * nm, 830.0 * nm, tables.gas_samples);
-
-// Since we don't have a separate dimension for candela or lumen, we reuse the
-// power dimension here for lumens. Be careful when using these photometric
-// units together with the radiometric units used everewhere else!
-typedef Scalar<0, 0, 0, 1> Lumen;
-typedef Scalar<0, 0, -1, 1> Candela;
-typedef Scalar<-2, 0, -1, 1> Luminance;
-constexpr Lumen lm = Lumen::Unit();
-constexpr Candela cd = lm / sr;
-constexpr Candela kcd = 1000.0 * cd;
+const ScatteringSpectrum k_ozone(440.0 * nm, 790.0 * nm, tables.ozone_samples);
+const ScatteringSpectrum k_vapor(440.0 * nm, 790.0 * nm, tables.vapor_samples);
+const DimensionlessSpectrum k_gas(440.0 * nm, 790.0 * nm, tables.gas_samples);
 
 }  // anonymous namespace
 
-Preetham::Preetham(double turbidity, bool use_lbl_zenith_luminance)
-    : turbidity_(turbidity),
-      use_lbl_zenith_luminance_(use_lbl_zenith_luminance) {}
+Preetham::Preetham(double turbidity) : turbidity_(turbidity) {}
 
 IrradianceSpectrum Preetham::GetSunIrradiance(Length altitude,
     Angle sun_zenith) const {
@@ -219,17 +184,9 @@ RadianceSpectrum Preetham::GetSkyRadiance(Length altitude, Angle sun_zenith,
   double T = turbidity_;
   double T2 = T * T;
   // Absolute zenith luminance and zenith chromaticity values:
-  Luminance Y_zenith;
-  if (use_lbl_zenith_luminance_) {
-    // See Eq. 1 in "Zenith luminance and sky luminance distributions for
-    // daylighting calculations", Karayel et al. in Energy and Buildings, 1984.
-    Y_zenith = ((1.376 * T - 1.81) * tan(PI / 2.0 - t) + 0.38) * kcd / m2;
-  } else {
-    // Formula from Preetham 1999 paper.
-    double khi = (4.0 / 9.0 - T / 120.0) * (PI - 2.0 * t);
-    Y_zenith =
+  double khi = (4.0 / 9.0 - T / 120.0) * (PI - 2.0 * t);
+  Luminance Y_zenith =
         ((4.0453 * T - 4.9710) * tan(khi) - 0.2155 * T + 2.4192) * kcd / m2;
-  }
   double x_zenith =
       (+0.00166 * t3 - 0.00375 * t2 + 0.00209 * t + 0.00000) * T2 +
       (-0.02903 * t3 + 0.06377 * t2 - 0.03202 * t + 0.00394) * T +
@@ -249,7 +206,8 @@ RadianceSpectrum Preetham::GetSkyRadiance(Length altitude, Angle sun_zenith,
       (0.0241 + 0.2562 * x - 0.7341 * y);
   Number M2 = (0.0300 - 31.4424 * x + 30.0717 * y) /
       (0.0241 + 0.2562 * x - 0.7341 * y);
-  DimensionlessSpectrum S = S0 + S1 * M1 + S2 * M2;
+  DimensionlessSpectrum S =
+      S0_function() + S1_function() * M1 + S2_function() * M2;
   // The absolute spectral power distribution L (in W/m^2/sr/nm) we want to
   // return is the relative spectral power distribution S times some unknown
   // scalar k (also in W/m^2/sr/nm): L = k*S. In order to compute k, we use the
@@ -262,11 +220,11 @@ RadianceSpectrum Preetham::GetSkyRadiance(Length altitude, Angle sun_zenith,
   // L = k*S = k*(S0 + S1 * M1 + S2 * M2) in the above equation, and noting:
   //
   static const auto Y_S0 =
-      683.0 * (lm / watt) * Integral(S0 * cie_y_bar_function());
+      MaxLuminousEfficacy * Integral(S0_function() * cie_y_bar_function());
   static const auto Y_S1 =
-      683.0 * (lm / watt) * Integral(S1 * cie_y_bar_function());
+      MaxLuminousEfficacy * Integral(S1_function() * cie_y_bar_function());
   static const auto Y_S2 =
-      683.0 * (lm / watt) * Integral(S2 * cie_y_bar_function());
+      MaxLuminousEfficacy * Integral(S2_function() * cie_y_bar_function());
   //
   // we get:
   //

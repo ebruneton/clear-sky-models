@@ -27,55 +27,25 @@
  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef ATMOSPHERE_MEASUREMENT_MEASURED_ATMOSPHERE_H_
-#define ATMOSPHERE_MEASUREMENT_MEASURED_ATMOSPHERE_H_
-
-#include <string>
+#ifndef ATMOSPHERE_MODEL_ONEAL_ONEAL_H_
+#define ATMOSPHERE_MODEL_ONEAL_ONEAL_H_
 
 #include "atmosphere/atmosphere.h"
 #include "math/angle.h"
-#include "math/hemispherical_function.h"
 #include "physics/spectrum.h"
 #include "physics/units.h"
 
-class MeasuredAtmosphere : public Atmosphere {
+class ONeal : public Atmosphere {
  public:
-  MeasuredAtmosphere(const std::string& directory, const std::string& date,
-      const std::string& hour, const std::string& minutes, Angle sun_zenith,
-      Angle sun_azimuth, const std::string& cache_directory,
-      bool compute_azimuth_from_data = true);
+  ONeal();
 
-  std::string GetSourceFileName(int i, int j) const;
-  std::string GetSourceFileName(Angle view_zenith, Angle view_azimuth) const;
-
-  inline const Angle sun_zenith() const { return sun_zenith_; }
-  inline const Angle sun_azimuth() const { return sun_azimuth_; }
+  int GetOriginalNumberOfWavelengths() const override { return 3; }
 
   IrradianceSpectrum GetSunIrradiance(Length altitude,
-      Angle sun_zenith) const;
+      Angle sun_zenith) const override;
 
   RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
-      Angle view_zenith, Angle view_sun_azimuth) const;
-
-  RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
-      Angle sun_azimuth, Angle view_zenith, Angle view_azimuth) const;
-
-  // Same as GetSkyRadiance, but returns 0 for view directions that were not
-  // measured directly, instead of interpolating the neasest samples.
-  RadianceSpectrum GetSkyRadianceMeasurement(Length altitude, Angle sun_zenith,
-      Angle sun_azimuth, Angle view_zenith, Angle view_azimuth) const;
-
- private:
-  Radiance GetAxiSymmetryError(Angle axis_azimuth) const;
-  Angle EstimateSunAzimuth(Angle initial_azimuth) const;
-
-  std::string directory_;
-  std::string date_;
-  std::string hour_;
-  std::string minutes_;
-  Angle sun_zenith_;
-  Angle sun_azimuth_;
-  HemisphericalFunction<RadianceSpectrum> measurements_;
+      Angle view_zenith, Angle view_sun_azimuth) const override;
 };
 
-#endif  // ATMOSPHERE_MEASUREMENT_MEASURED_ATMOSPHERE_H_
+#endif  // ATMOSPHERE_MODEL_ONEAL_ONEAL_H_

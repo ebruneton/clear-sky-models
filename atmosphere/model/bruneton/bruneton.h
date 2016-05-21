@@ -42,18 +42,24 @@ class Bruneton : public Atmosphere {
     SINGLE_SCATTERING_ONLY, DOUBLE_SCATTERING_ONLY, ALL_ORDERS
   };
 
-  explicit Bruneton(ScatteringType scattering_type);
+  // Use 3 wavelength for the Bruneton model, 15 for the Elek model.
+  Bruneton(ScatteringType scattering_type, int original_number_of_wavelength);
 
-  virtual IrradianceSpectrum GetSunIrradiance(Length altitude,
-      Angle sun_zenith) const;
+  int GetOriginalNumberOfWavelengths() const override {
+    return original_number_of_wavelength_;
+  }
 
-  virtual RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
-      Angle view_zenith, Angle view_sun_azimuth) const;
+  IrradianceSpectrum GetSunIrradiance(Length altitude,
+      Angle sun_zenith) const override;
 
-  virtual IrradianceSpectrum GetSkyIrradiance(Length altitude,
-      Angle sun_zenith) const;
+  RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
+      Angle view_zenith, Angle view_sun_azimuth) const override;
+
+  IrradianceSpectrum GetSkyIrradiance(Length altitude,
+      Angle sun_zenith) const override;
 
  private:
+  int original_number_of_wavelength_;
   TransmittanceTexture transmittance_sampler_;
   IrradianceTexture inscatter1R_sampler_;
   IrradianceTexture inscatter1M_sampler_;

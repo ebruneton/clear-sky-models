@@ -76,17 +76,21 @@ ScatteringSpectrum NewRayleighScattering() {
   return ScatteringSpectrum(360.0 * nm, 830.0 * nm, penndorf_samples);
 }
 
-ScatteringSpectrum NewMieExtinction() {
+ScatteringSpectrum NewMieExtinction(double angstrom_alpha,
+    double angstrom_beta) {
   ScatteringSpectrum mie;
   for (unsigned int i = 0; i < mie.size(); ++i) {
-    mie[i] = 68e-6 / pow(mie.GetWavelength(i) / (360.0 * nm), 0.5) / m;
+    double lambda = mie.GetWavelength(i).to(1000.0 * nm);
+    mie[i] = angstrom_beta * pow(lambda, -angstrom_alpha) / MieScaleHeight;
   }
   return mie;
 }
 
-ScatteringSpectrum NewMieScattering() {
+ScatteringSpectrum NewMieScattering(double angstrom_alpha,
+    double angstrom_beta) {
   const double kSingleScatteringAlbedo = 0.8;
-  return NewMieExtinction() * kSingleScatteringAlbedo;
+  return
+      NewMieExtinction(angstrom_alpha, angstrom_beta) * kSingleScatteringAlbedo;
 }
 
 DimensionlessSpectrum NewGroundAlbedo() {
@@ -109,8 +113,10 @@ DimensionlessSpectrum NewGroundAlbedo() {
 
 const IrradianceSpectrum solar_spectrum = NewSolarSpectrum();
 const ScatteringSpectrum rayleigh_scattering = NewRayleighScattering();
-const ScatteringSpectrum mie_extinction = NewMieExtinction();
-const ScatteringSpectrum mie_scattering = NewMieScattering();
+const ScatteringSpectrum mie_extinction =
+    NewMieExtinction(MieAngstromAlpha, MieAngstromBeta);
+const ScatteringSpectrum mie_scattering =
+    NewMieScattering(MieAngstromAlpha, MieAngstromBeta);
 const DimensionlessSpectrum ground_albedo = NewGroundAlbedo();
 
 }  // anonymous namespace
@@ -119,6 +125,14 @@ const IrradianceSpectrum& SolarSpectrum() { return solar_spectrum; }
 const ScatteringSpectrum& RayleighScattering() { return rayleigh_scattering; }
 const ScatteringSpectrum& MieExtinction() { return mie_extinction; }
 const ScatteringSpectrum& MieScattering() { return mie_scattering; }
+
+ScatteringSpectrum MieExtinction(double angstrom_alpha, double angstrom_beta) {
+  return NewMieExtinction(angstrom_alpha, angstrom_beta);
+}
+
+ScatteringSpectrum MieScattering(double angstrom_alpha, double angstrom_beta) {
+  return NewMieScattering(angstrom_alpha, angstrom_beta);
+}
 
 InverseSolidAngle RayleighPhaseFunction(Angle scattering_angle) {
   return RayleighPhaseFunction(cos(scattering_angle));
@@ -135,14 +149,25 @@ InverseSolidAngle MiePhaseFunction(Angle scattering_angle) {
 }
 
 InverseSolidAngle MiePhaseFunction(Number scattering_angle_cosine) {
-  constexpr double g = 0.7;
+  constexpr double g = MiePhaseFunctionG;
   constexpr InverseSolidAngle kMie = 3.0 / (8.0 * PI) *
       (1.0 - g * g) / (2.0 + g * g) * InverseSolidAngle::Unit();
   return kMie * (1.0 + scattering_angle_cosine * scattering_angle_cosine) /
       pow(1.0 + g * g - 2.0 * g * scattering_angle_cosine, 1.5);
 }
 
+InverseSolidAngle MiePhaseFunction(double g, Number scattering_angle_cosine) {
+  const InverseSolidAngle kMie = 3.0 / (8.0 * PI) *
+      (1.0 - g * g) / (2.0 + g * g) * InverseSolidAngle::Unit();
+  return kMie * (1.0 + scattering_angle_cosine * scattering_angle_cosine) /
+      pow(1.0 + g * g - 2.0 * g * scattering_angle_cosine, 1.5);
+}
+
 const DimensionlessSpectrum& GroundAlbedo() { return ground_albedo; }
+
+int Atmosphere::GetOriginalNumberOfWavelengths() const {
+  return spectrum::NUM_WAVELENGTH;
+}
 
 IrradianceSpectrum Atmosphere::GetSkyIrradiance(Length altitude,
     Angle sun_zenith) const {

@@ -11,6 +11,7 @@
 				<Option object_output="output/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="/usr/local/bin/uvspec /usr/local/share/libRadtran/data" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -20,6 +21,7 @@
 				<Option object_output="output/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="/usr/local/bin/uvspec /usr/local/share/libRadtran/data" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
@@ -43,15 +45,20 @@
 			<Add option="-Wmain" />
 			<Add option="-pedantic-errors" />
 			<Add option="-pedantic" />
-			<Add option="-Wall" />
 			<Add option="-std=c++11" />
+			<Add option="-Wall" />
 		</Compiler>
+		<Linker>
+			<Add option="-pthread" />
+		</Linker>
 		<Unit filename="Makefile" />
 		<Unit filename="atmosphere/atmosphere.cc" />
 		<Unit filename="atmosphere/atmosphere.h" />
 		<Unit filename="atmosphere/atmosphere_test.cc">
 			<Option target="Test" />
 		</Unit>
+		<Unit filename="atmosphere/color.cc" />
+		<Unit filename="atmosphere/color.h" />
 		<Unit filename="atmosphere/comparisons.cc" />
 		<Unit filename="atmosphere/comparisons.h" />
 		<Unit filename="atmosphere/measurement/measured_atmosphere.cc" />
@@ -81,6 +88,8 @@
 		<Unit filename="atmosphere/model/nishita/nishita93.h" />
 		<Unit filename="atmosphere/model/nishita/nishita96.cc" />
 		<Unit filename="atmosphere/model/nishita/nishita96.h" />
+		<Unit filename="atmosphere/model/oneal/oneal.cc" />
+		<Unit filename="atmosphere/model/oneal/oneal.h" />
 		<Unit filename="atmosphere/model/polradtran/polradtran.cc" />
 		<Unit filename="atmosphere/model/polradtran/polradtran.h" />
 		<Unit filename="atmosphere/model/preetham/preetham.cc" />
@@ -107,6 +116,7 @@
 		<Unit filename="math/hemispherical_function_test.cc">
 			<Option target="Test" />
 		</Unit>
+		<Unit filename="math/matrix.h" />
 		<Unit filename="math/scalar.h" />
 		<Unit filename="math/scalar_test.cc">
 			<Option target="Test" />

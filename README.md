@@ -1,6 +1,6 @@
 ## Synopsis
 
-This project implements six clear sky models in a common framework to compare
+This project implements 8 clear sky models in a common framework to compare
 them with each other and with a reference model and reference measurements.
 
 ## License

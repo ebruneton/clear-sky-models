@@ -46,15 +46,15 @@ class TestVector : public TestCase {
   }
 
   void TestVector3() {
-    Scalar<1, 2, 3, 4> u = Scalar<1, 2, 3, 4>::Unit();
-    Vector3<Scalar<1, 2, 3, 4>> v(1.0 * u, 2.0 * u, 3.0 * u);
-    Vector3<Scalar<1, 2, 3, 4>> v2 = v + v;
-    Vector3<Scalar<1, 2, 3, 4>> v3 = v - v;
-    Vector3<Scalar<11, 22, 33, 44>> v4 =
-        v2 * (2.0 * Scalar<10, 20, 30, 40>::Unit());
-    Vector3<Scalar<1, 2, 3, 4>> v5 =
-        v4 / (4.0 * Scalar<10, 20, 30, 40>::Unit());
-    Vector3<Scalar<1, 2, 3, 4>> v6 = -v5;
+    Scalar<1, 2, 3, 4, 5> u = Scalar<1, 2, 3, 4, 5>::Unit();
+    Vector3<Scalar<1, 2, 3, 4, 5>> v(1.0 * u, 2.0 * u, 3.0 * u);
+    Vector3<Scalar<1, 2, 3, 4, 5>> v2 = v + v;
+    Vector3<Scalar<1, 2, 3, 4, 5>> v3 = v - v;
+    Vector3<Scalar<11, 22, 33, 44, 55>> v4 =
+        v2 * (2.0 * Scalar<10, 20, 30, 40, 50>::Unit());
+    Vector3<Scalar<1, 2, 3, 4, 5>> v5 =
+        v4 / (4.0 * Scalar<10, 20, 30, 40, 50>::Unit());
+    Vector3<Scalar<1, 2, 3, 4, 5>> v6 = -v5;
     vec3 v7 = normalize(v6);
 
     ExpectEquals(1.0 * u, v.x);
@@ -66,16 +66,16 @@ class TestVector : public TestCase {
     ExpectEquals(0.0 * u, v3.x);
     ExpectEquals(0.0 * u, v3.y);
     ExpectEquals(0.0 * u, v3.z);
-    ExpectEquals(4.0 * Scalar<11, 22, 33, 44>::Unit(), v4.x);
-    ExpectEquals(8.0 * Scalar<11, 22, 33, 44>::Unit(), v4.y);
-    ExpectEquals(12.0 * Scalar<11, 22, 33, 44>::Unit(), v4.z);
+    ExpectEquals(4.0 * Scalar<11, 22, 33, 44, 55>::Unit(), v4.x);
+    ExpectEquals(8.0 * Scalar<11, 22, 33, 44, 55>::Unit(), v4.y);
+    ExpectEquals(12.0 * Scalar<11, 22, 33, 44, 55>::Unit(), v4.z);
     ExpectEquals(1.0 * u, v5.x);
     ExpectEquals(2.0 * u, v5.y);
     ExpectEquals(3.0 * u, v5.z);
     ExpectEquals(-1.0 * u, v6.x);
     ExpectEquals(-2.0 * u, v6.y);
     ExpectEquals(-3.0 * u, v6.z);
-    ExpectEquals(14.0 * Scalar<2, 4, 6, 8>::Unit(), dot(v6, v6));
+    ExpectEquals(14.0 * Scalar<2, 4, 6, 8, 10>::Unit(), dot(v6, v6));
     ExpectEquals(sqrt(14.0) * u, length(v6));
     ExpectEquals(-1.0 / sqrt(14.0), v7.x());
     ExpectEquals(-2.0 / sqrt(14.0), v7.y());

@@ -40,13 +40,15 @@ struct ArHosekSkyModelState;
 class Hosek : public Atmosphere {
  public:
   explicit Hosek(double turbidity);
-  ~Hosek();
+  virtual ~Hosek();
 
-  virtual IrradianceSpectrum GetSunIrradiance(Length altitude,
-      Angle sun_zenith) const;
+  int GetOriginalNumberOfWavelengths() const override { return 11; }
 
-  virtual RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
-      Angle view_zenith, Angle view_sun_azimuth) const;
+  IrradianceSpectrum GetSunIrradiance(Length altitude,
+      Angle sun_zenith) const override;
+
+  RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
+      Angle view_zenith, Angle view_sun_azimuth) const override;
 
  private:
   void MaybeInitSkyModelState(Angle sun_zenith) const;

@@ -113,7 +113,8 @@ RadianceSpectrum LoadKiderRadianceFile(const std::string& filename) {
 MeasuredAtmosphere::MeasuredAtmosphere(const std::string& directory,
     const std::string& date, const std::string& hour,
     const std::string& minutes, Angle sun_zenith, Angle sun_azimuth,
-    const std::string& cache_directory, bool compute_azimuth_from_data) {
+    const std::string& cache_directory, bool compute_azimuth_from_data)
+    : directory_(directory), date_(date), hour_(hour), minutes_(minutes) {
   const std::string cache_file_name =
       cache_directory + "/" + date + hour + minutes + ".dat";
   if (cache_directory.length() > 0) {
@@ -173,6 +174,42 @@ MeasuredAtmosphere::MeasuredAtmosphere(const std::string& directory,
         reinterpret_cast<const char*>(&sun_azimuth_), sizeof(sun_azimuth_));
     file.close();
   }
+}
+
+std::string MeasuredAtmosphere::GetSourceFileName(int i, int j) const {
+  if (i == 8 && j == 4) {
+    // Measurement sample 0 (north) seems systematically wrong.
+    // Return a nearby sample instead.
+    j = 5;
+  }
+  for (int s = 0; s < 81; ++s) {
+    int x;
+    int y;
+    std::string filename = GetFileNameAndSampleLocation(
+        directory_, date_, hour_, minutes_, s, &x, &y);
+    if (x == i && y == 8 - j) {
+      return filename;
+    }
+  }
+  return "";
+}
+
+std::string MeasuredAtmosphere::GetSourceFileName(Angle view_zenith,
+    Angle view_azimuth) const {
+  for (int i = 0; i < 9; ++i) {
+    for (int j = 0; j < 9; ++j) {
+      Angle zenith_angle;
+      Angle azimuth;
+      HemisphericalFunction<RadianceSpectrum>::GetSampleDirection(
+          i, j, &zenith_angle, &azimuth);
+      Number cos_angle = cos(view_zenith) * cos(zenith_angle) +
+          sin(view_zenith) * sin(zenith_angle) * cos(view_azimuth - azimuth);
+      if (acos(cos_angle).to(deg) < 0.1) {
+        return GetSourceFileName(i, j);
+      }
+    }
+  }
+  return "";
 }
 
 IrradianceSpectrum MeasuredAtmosphere::GetSunIrradiance(Length altitude,

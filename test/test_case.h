@@ -100,13 +100,13 @@ class TestCase {
     }
   }
 
-  template<int U1, int U2, int U3, int U4>
-  void ExpectEquals(Scalar<U1, U2, U3, U4> expected,
-      Scalar<U1, U2, U3, U4> actual) {
+  template<int U1, int U2, int U3, int U4, int U5>
+  void ExpectEquals(Scalar<U1, U2, U3, U4, U5> expected,
+      Scalar<U1, U2, U3, U4, U5> actual) {
     if (!(actual == expected)) {
-      std::cout << expected.to(Scalar<U1, U2, U3, U4>::Unit())
+      std::cout << expected.to(Scalar<U1, U2, U3, U4, U5>::Unit())
                 << " expected but got "
-                << actual.to(Scalar<U1, U2, U3, U4>::Unit()) << std::endl;
+                << actual.to(Scalar<U1, U2, U3, U4, U5>::Unit()) << std::endl;
       pass_ = false;
     }
   }

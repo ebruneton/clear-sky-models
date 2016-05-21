@@ -34,8 +34,10 @@
 #include <vector>
 
 #include "atmosphere/atmosphere.h"
+#include "atmosphere/color.h"
 #include "atmosphere/measurement/measured_atmospheres.h"
 #include "math/angle.h"
+#include "math/hemispherical_function.h"
 #include "physics/units.h"
 
 class Comparisons {
@@ -43,6 +45,11 @@ class Comparisons {
   Comparisons(const std::string& name, const Atmosphere& atmosphere,
       const MeasuredAtmospheres& reference, Wavelength min_wavelength,
       Wavelength max_wavelength);
+
+  const std::string& name() const { return name_; }
+
+  void RenderSkyImage(const std::string& name, Angle sun_zenith,
+      Angle sun_azimuth) const;
 
   void PlotSunIlluminanceAttenuation() const;
 
@@ -55,24 +62,30 @@ class Comparisons {
   void PlotLuminanceProfile(const std::string& name, Angle sun_zenith,
       Angle sun_azimuth) const;
 
-  void PlotRelativeError(const std::string& name,
-      Angle sun_zenith, Angle sun_azimuth) const;
+  SpectralRadiance PlotRelativeError(const std::string& name,
+      Angle sun_zenith, Angle sun_azimuth,
+      SpectralRadiance* rmse_with_approximate_spectrum) const;
 
   void PlotRelativeError(const std::string& name, const Atmosphere& reference,
       Angle sun_zenith, Angle sun_azimuth) const;
 
-  Radiance ComputeZenithLuminance(Angle sun_zenith) const;
+  SpectralRadiance ComputeTotalRmse(const std::vector<Angle>& sun_zenith,
+      const std::vector<Angle>& sun_azimuth) const;
+
+  Luminance ComputeZenithLuminance(Angle sun_zenith) const;
   void ComputeIrradiance(Angle sun_zenith, Irradiance* sun,
       Irradiance* sky) const;
 
   void PlotDayZenithLuminance(const std::vector<Angle>& sun_zenith,
-      const std::vector<Radiance>& zenith_luminance) const;
+      const std::vector<Luminance>& zenith_luminance) const;
   void PlotDayIrradiance(const std::vector<Angle>& sun_zenith,
       const std::vector<Irradiance>& sun,
       const std::vector<Irradiance>& sky) const;
 
-  static void SaveErrorCaption(bool png_output);
-  static void SaveScaleCaption(bool png_output);
+  static const std::string& GetOutputDirectory();
+  static std::string SaveGroundAlbedo();
+  static std::string SaveErrorCaption();
+  static std::string SaveScaleCaption();
 
  private:
   std::string name_;
@@ -80,6 +93,13 @@ class Comparisons {
   const MeasuredAtmospheres& reference_;
   Wavelength min_wavelength_;
   Wavelength max_wavelength_;
+
+  Color GetOriginalColor(const RadianceSpectrum& radiance) const;
+
+  SpectralRadiance ComputeRelativeErrorAndRmse(Angle sun_zenith,
+      Angle sun_azimuth, HemisphericalFunction<Number>* relative_error,
+      SpectralRadiance* rmse_with_approximate_spectrum, Number* rgb_rmse,
+      Number* original_rgb_rmse, Number* approximate_rgb_rmse) const;
 };
 
 #endif  // ATMOSPHERE_COMPARISONS_H_

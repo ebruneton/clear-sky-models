@@ -95,14 +95,10 @@ all: output/Debug/clearskymodels output/Release/clearskymodels $(INPUTS)
 	mkdir -p output/cache/input
 	mkdir -p output/cache/nishita
 	mkdir -p output/cache/polradtran
-	mkdir -p output/comparisons
 	mkdir -p output/figures
 	mkdir -p output/libradtran
-	mkdir -p output/tables
-	mkdir -p paper/figures
-	output/Release/clearskymodels $(LIBRADTRAN_HOME)
-	gnuplot -e "load 'main.plot';"
-	gnuplot -e "load 'paper.plot';"
+	output/Release/clearskymodels \
+	    /usr/local/bin/uvspec /usr/local/share/libRadtran/data
 
 test: output/Debug/clearskymodels_test
 	output/Debug/clearskymodels_test
@@ -110,5 +106,5 @@ test: output/Debug/clearskymodels_test
 clean:
 	rm -rf output/Debug
 	rm -rf output/Release
-	rm main.plot paper.plot
+	rm main.plot
 

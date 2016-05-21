@@ -32,34 +32,39 @@
 
 #include "math/scalar.h"
 
-// Defines a unit system for radiometric quantities, using the following four
-// base units: length, wavelength, solid angle, and power (wavelength is also a
-// length, but we distinguish the two for increased clarity). From this we
-// derive the irradiance, radiance, spectral irradiance, spectral radiance, etc.
+// Defines a unit system for radiometric and photometric quantities, using the
+// following five base units: length, wavelength, solid angle, power and lumen
+// (wavelength is also a length, but we distinguish the two for increased
+// clarity). From this we derive the irradiance, radiance, spectral irradiance,
+// spectral radiance, candela, etc.
 
-typedef Scalar<1, 0, 0, 0> Length;
-typedef Scalar<0, 1, 0, 0> Wavelength;
-typedef Scalar<0, 0, 1, 0> SolidAngle;
-typedef Scalar<0, 0, 0, 1> Power;
+typedef Scalar<1, 0, 0, 0, 0> Length;
+typedef Scalar<0, 1, 0, 0, 0> Wavelength;
+typedef Scalar<0, 0, 1, 0, 0> SolidAngle;
+typedef Scalar<0, 0, 0, 1, 0> Power;
+typedef Scalar<0, 0, 0, 0, 1> LuminousPower;
 
-typedef Scalar<2, 0, 0, 0> Area;
-typedef Scalar<3, 0, 0, 0> Volume;
-typedef Scalar<-2, 0, 0, 1> Irradiance;
-typedef Scalar<-2, 0, -1, 1> Radiance;
-typedef Scalar<0, -1, 0, 1> SpectralPower;
-typedef Scalar<-2, -1, 0, 1> SpectralIrradiance;
-typedef Scalar<-2, -1, -1, 1> SpectralRadiance;
-typedef Scalar<-1, 0, 0, 0> ScatteringCoefficient;
-typedef Scalar<0, 0, -1, 0> InverseSolidAngle;
-typedef Scalar<-3, 0, 0, 0> NumberDensity;
+typedef Scalar<2, 0, 0, 0, 0> Area;
+typedef Scalar<3, 0, 0, 0, 0> Volume;
+typedef Scalar<-2, 0, 0, 1, 0> Irradiance;
+typedef Scalar<-2, 0, -1, 1, 0> Radiance;
+typedef Scalar<0, -1, 0, 1, 0> SpectralPower;
+typedef Scalar<-2, -1, 0, 1, 0> SpectralIrradiance;
+typedef Scalar<-2, -1, -1, 1, 0> SpectralRadiance;
+typedef Scalar<-1, 0, 0, 0, 0> ScatteringCoefficient;
+typedef Scalar<0, 0, -1, 0, 0> InverseSolidAngle;
+typedef Scalar<-3, 0, 0, 0, 0> NumberDensity;
+typedef Scalar<0, 0, -1, 0, 1> LuminousIntensity;
+typedef Scalar<-2, 0, -1, 0, 1> Luminance;
 
-// Provides aliases for the four base units, with shorter names than
+// Provides aliases for the five base units, with shorter names than
 // Length::Unit(), Wavelength::Unit(), etc.
 
 constexpr Length m = Length::Unit();
 constexpr Wavelength nm = Wavelength::Unit();
 constexpr SolidAngle sr = SolidAngle::Unit();
 constexpr Power watt = Power::Unit();
+constexpr LuminousPower lm = LuminousPower::Unit();
 
 // Provides aliases for some derived units.
 
@@ -71,5 +76,9 @@ constexpr Radiance watt_per_square_meter_per_sr = watt / (m2 * sr);
 constexpr SpectralIrradiance watt_per_square_meter_per_nm = watt / (m2 * nm);
 constexpr SpectralRadiance watt_per_square_meter_per_sr_per_nm =
     watt / (m2 * sr * nm);
+constexpr LuminousIntensity cd = lm / sr;
+constexpr LuminousIntensity kcd = 1000.0 * cd;
+constexpr Luminance cd_per_square_meter = cd / m2;
+constexpr Luminance kcd_per_square_meter = kcd / m2;
 
 #endif  // PHYSICS_UNITS_H_

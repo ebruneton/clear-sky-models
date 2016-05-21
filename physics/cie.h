@@ -30,13 +30,47 @@
 #ifndef PHYSICS_CIE_H_
 #define PHYSICS_CIE_H_
 
+#include "math/matrix.h"
+#include "math/vector.h"
 #include "physics/spectrum.h"
+
+typedef Vector3<Luminance> Color;
+
+// The conversion factor between watts and lumens.
+constexpr auto MaxLuminousEfficacy = 683.0 * lm / watt;
 
 // The CIE color matching functions x_bar, y_bar and z_bar. See
 // https://en.wikipedia.org/wiki/CIE_1931_color_space#Color_matching_functions.
-
 const DimensionlessSpectrum& cie_x_bar_function();
 const DimensionlessSpectrum& cie_y_bar_function();
 const DimensionlessSpectrum& cie_z_bar_function();
+
+// The conversion matrix from XYZ to linear sRGB color spaces.
+constexpr Matrix3<Number> XYZ_to_sRGB(
+    +3.2404542, -1.5371385, -0.4985314,
+    -0.9692660, +1.8760108, +0.0415560,
+    +0.0556434, -0.2040259, +1.0572252);
+
+// The CIE S0, S1 and S2 components, allowing to compute the relative spectral
+// power distribution of a D65 illuminant with S = S0 + M1 S1 + M2 S2, where
+// M1 and M2 depend on the CIE xy chromaticities.
+// See https://en.wikipedia.org/wiki/Standard_illuminant for more details.
+const DimensionlessSpectrum& S0_function();
+const DimensionlessSpectrum& S1_function();
+const DimensionlessSpectrum& S2_function();
+
+// Converts the given radiance spectrum to a luminance value, using the relation
+//   L = MaxLuminousEfficacy * integral of cie_y_bar_function * spectrum
+Luminance GetLuminance(const RadianceSpectrum& spectrum);
+
+// Converts the given spectrum to a RGB color, by first converting the spectrum
+// to XYZ values with the x_bar, y_bar, z_bar functions, and then by converting
+// from XYZ to linear sRGB.
+Color GetSrgbColor(const RadianceSpectrum& spectrum);
+
+// Same as above, but using only number_of_wavelengths wavelengths, between the
+// given min and max.
+Color GetSrgbColor(const RadianceSpectrum& spectrum, Wavelength min_wavelength,
+    Wavelength max_wavelength, int number_of_wavelengths);
 
 #endif  // PHYSICS_CIE_H_

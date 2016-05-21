@@ -37,21 +37,18 @@
 
 class Preetham : public Atmosphere {
  public:
-  // LBL (Lawrence Berkeley Laboratory) zenith luminance is using the zenith
-  // luminance model from "Zenith luminance and sky luminance distributions for
-  // daylighting calculations", Karayel et al. in Energy and Buildings, 1984
-  // (instead of the formula from Appendix 2 of the Preetham paper).
-  Preetham(double turbidity, bool use_lbl_zenith_luminance);
+  explicit Preetham(double turbidity);
 
-  virtual IrradianceSpectrum GetSunIrradiance(Length altitude,
-      Angle sun_zenith) const;
+  int GetOriginalNumberOfWavelengths() const override { return 3; }
 
-  virtual RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
-      Angle view_zenith, Angle view_sun_azimuth) const;
+  IrradianceSpectrum GetSunIrradiance(Length altitude,
+      Angle sun_zenith) const override;
+
+  RadianceSpectrum GetSkyRadiance(Length altitude, Angle sun_zenith,
+      Angle view_zenith, Angle view_sun_azimuth) const override;
 
  private:
   double turbidity_;
-  bool use_lbl_zenith_luminance_;
 };
 
 #endif  // ATMOSPHERE_MODEL_PREETHAM_PREETHAM_H_
