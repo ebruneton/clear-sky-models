@@ -106,5 +106,4 @@ test: output/Debug/clearskymodels_test
 clean:
 	rm -rf output/Debug
 	rm -rf output/Release
-	rm main.plot
 

@@ -117,6 +117,9 @@
 			<Option target="Test" />
 		</Unit>
 		<Unit filename="math/matrix.h" />
+		<Unit filename="math/matrix_test.cc">
+			<Option target="Test" />
+		</Unit>
 		<Unit filename="math/scalar.h" />
 		<Unit filename="math/scalar_test.cc">
 			<Option target="Test" />
