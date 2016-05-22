@@ -558,12 +558,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
     const std::vector<Angle>& sun_zenith,
     const std::vector<Angle>& sun_azimuth) {
   std::ofstream file(Comparisons::GetOutputDirectory() + "main.plot");
-  file << "load \"" << Comparisons::GetOutputDirectory()
-       << "error_caption.plot\"\n"
-       << "load \"" << Comparisons::GetOutputDirectory()
-       << "scale_caption.plot\"\n"
-       << "reset\n"
-       << "set terminal postscript eps size 6.8cm,4cm \"NimbusSanL-Regu\"\n"
+  file << "set terminal postscript eps size 6.8cm,4cm \"NimbusSanL-Regu\"\n"
        << "set tics in nomirror scale 0.2\n"
        << "set style line 1 lc rgbcolor \"#eeeeee\"\n"
        << "set grid noxtics ytics linestyle 1\n\n";

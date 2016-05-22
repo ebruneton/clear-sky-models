@@ -70,16 +70,16 @@ output/Release/%.o: %.cc
 
 output/Debug/clearskymodels: $(DEBUG_OBJECTS) output/Debug/main.o
 	mkdir -p $(@D)
-	$(GPP) -s -o $@ $^
+	$(GPP) -pthread -s -o $@ $^
 
 output/Release/clearskymodels: $(RELEASE_OBJECTS) output/Release/main.o
 	mkdir -p $(@D)
-	$(GPP) -s -o $@ $^
+	$(GPP) -pthread -s -o $@ $^
 
 output/Debug/clearskymodels_test: $(DEBUG_OBJECTS) $(TEST_OBJECTS)
 	mkdir -p $(@D)
 	echo $(TEST_OBJECTS)
-	$(GPP) -s -o $@ $^
+	$(GPP) -pthread -s -o $@ $^
 
 lint: $(LINT_SOURCES)
 	./cpplint.py --root=$(PWD) $^

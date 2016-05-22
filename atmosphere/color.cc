@@ -62,43 +62,6 @@ Color GetSrgbColorNaive(const RadianceSpectrum& spectrum) {
 }
 
 Color GetSrgbColorFrom3SpectrumSamples(const RadianceSpectrum& spectrum) {
-  // Extracting 3 samples from a spectrum of the form c0 S0 + c1 S1 + c2 S2, at
-  // the lambda_r, lambda_g, lambda_b wavelengths, gives the values
-  //   sample_r = c0 S0(lambda_r) + c1 S1(lambda_r) + c2 S2(lambda_r)
-  //   sample_g = c0 S0(lambda_g) + c1 S1(lambda_g) + c2 S2(lambda_g)
-  //   sample_b = c0 S0(lambda_b) + c1 S1(lambda_b) + c2 S2(lambda_b)
-  // Posing that sample_i is equal to spectrum(lambda_i), for each i, gives 3
-  // equations for the 3 unknowns c0, c1 and c2. We can then compute c0, c1, c2
-  // with the inverse of the above matrix. From this, we can compute the XYZ
-  // color corresponding to the reconstructed spectrum c0 S0 + c1 S1 + c2 S2:
-  //   X = c0 X0 + c1 X1 + c2 X2
-  //   Y = c0 Y0 + c1 Y1 + c2 Y2
-  //   Z = c0 Z0 + c1 Z1 + c2 Z2
-  // where X0,Y0,Z0 is the XYZ color corresponding to the S0 spectrum, and
-  // similarly for X1,Y1,Z1 and X2,Y2,Z2. Finally, using the XYZ_to_sRGB matrix,
-  // we get the linear sRGB color corresponding to the reconstructed spectrum.
-  // Putting this all together, we see that the sRGB color is obtained from the
-  // 3 spectrum samples with a matrix vector product, where the matrix can be
-  // precomputed and is the product of XYZ_to_sRGB and the two above matrices:
-  /*static const auto conversion_matrix = XYZ_to_sRGB * Matrix3<Wavelength>(
-      Integral(S0_function() * cie_x_bar_function()),
-      Integral(S1_function() * cie_x_bar_function()),
-      Integral(S2_function() * cie_x_bar_function()),
-      Integral(S0_function() * cie_y_bar_function()),
-      Integral(S1_function() * cie_y_bar_function()),
-      Integral(S2_function() * cie_y_bar_function()),
-      Integral(S0_function() * cie_z_bar_function()),
-      Integral(S1_function() * cie_z_bar_function()),
-      Integral(S2_function() * cie_z_bar_function())
-  ) * inverse(Matrix3<Number>(
-      S0_function()(lambda_r), S1_function()(lambda_r), S2_function()(lambda_r),
-      S0_function()(lambda_g), S1_function()(lambda_g), S2_function()(lambda_g),
-      S0_function()(lambda_b), S1_function()(lambda_b), S2_function()(lambda_b)
-  ));
-  Vector3<SpectralRadiance> samples(
-      spectrum(lambda_r), spectrum(lambda_g), spectrum(lambda_b));
-  return (conversion_matrix * samples) * MaxLuminousEfficacy;*/
-
   // Compute the normalization vector to properly convert 3 spectrum samples to
   // a perceptual, linear sRGB color.
   static const auto k = []() {
@@ -125,26 +88,6 @@ Color GetSrgbColorFrom3SpectrumSamples(const RadianceSpectrum& spectrum) {
 // its samples with the CIE S0, S1 and S2 components.
 RadianceSpectrum GetApproximateSpectrumFrom3SpectrumSamples(
     const RadianceSpectrum& spectrum) {
-  // Extracting 3 samples from a spectrum of the form c0 S0 + c1 S1 + c2 S2, at
-  // the lambda_r, lambda_g, lambda_b wavelengths, gives the values
-  //   sample_r = c0 S0(lambda_r) + c1 S1(lambda_r) + c2 S2(lambda_r)
-  //   sample_g = c0 S0(lambda_g) + c1 S1(lambda_g) + c2 S2(lambda_g)
-  //   sample_b = c0 S0(lambda_b) + c1 S1(lambda_b) + c2 S2(lambda_b)
-  // Posing that sample_i is equal to spectrum(lambda_i), for each i, gives 3
-  // equations for the 3 unknowns c0, c1 and c2. We can then compute c0, c1, c2
-  // with the inverse of the above matrix:
-  /*static const Matrix3<Number> conversion_matrix = inverse(Matrix3<Number>(
-      S0_function()(lambda_r), S1_function()(lambda_r), S2_function()(lambda_r),
-      S0_function()(lambda_g), S1_function()(lambda_g), S2_function()(lambda_g),
-      S0_function()(lambda_b), S1_function()(lambda_b), S2_function()(lambda_b)
-  ));
-  Vector3<SpectralRadiance> samples(
-      spectrum(lambda_r), spectrum(lambda_g), spectrum(lambda_b));
-  auto coefficients = conversion_matrix * samples;
-  // and return the reconstructed, approximate spectrum c0 S0 + c1 S1 + c2 S2:
-  return S0_function() * coefficients.x + S1_function() * coefficients.y +
-      S2_function() * coefficients.z;*/
-
   static const Matrix3<Number> sRGB_to_XYZ = inverse(XYZ_to_sRGB);
   Color XYZ = sRGB_to_XYZ * GetSrgbColorFrom3SpectrumSamples(spectrum);
   Number x = XYZ.x / (XYZ.x + XYZ.y + XYZ.z);
