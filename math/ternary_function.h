@@ -79,12 +79,16 @@ class TernaryFunction {
   inline unsigned int size_z() const { return NZ; }
 
   inline const T& Get(int i, int j, int k) const {
-    assert(i >= 0 && i < NX && j >= 0 && j < NY && k >= 0 && k < NZ);
+    assert(i >= 0 && i < static_cast<int>(NX) &&
+           j >= 0 && j < static_cast<int>(NY) &&
+           k >= 0 && k < static_cast<int>(NZ));
     return value_[i + j * NX + k * NX * NY];
   }
 
   inline void Set(int i, int j, int k, T value) {
-    assert(i >= 0 && i < NX && j >= 0 && j < NY && k >= 0 && k < NZ);
+    assert(i >= 0 && i < static_cast<int>(NX) &&
+           j >= 0 && j < static_cast<int>(NY) &&
+           k >= 0 && k < static_cast<int>(NZ));
     value_[i + j * NX + k * NX * NY] = value;
   }
 

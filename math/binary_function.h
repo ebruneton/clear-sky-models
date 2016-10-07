@@ -78,17 +78,20 @@ class BinaryFunction {
   inline unsigned int size_y() const { return NY; }
 
   inline const T& Get(int i, int j) const {
-    assert(i >= 0 && i < NX && j >= 0 && j < NY);
+    assert(i >= 0 && i < static_cast<int>(NX) &&
+           j >= 0 && j < static_cast<int>(NY));
     return value_[i + j * NX];
   }
 
   inline T& Get(int i, int j) {
-    assert(i >= 0 && i < NX && j >= 0 && j < NY);
+    assert(i >= 0 && i < static_cast<int>(NX) &&
+           j >= 0 && j < static_cast<int>(NY));
     return value_[i + j * NX];
   }
 
   inline void Set(int i, int j, T value) {
-    assert(i >= 0 && i < NX && j >= 0 && j < NY);
+    assert(i >= 0 && i < static_cast<int>(NX) &&
+           j >= 0 && j < static_cast<int>(NY));
     value_[i + j * NX] = value;
   }
 

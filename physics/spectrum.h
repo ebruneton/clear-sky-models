@@ -83,7 +83,7 @@ class WavelengthFunction {
   // lambda < min_wavelength and for lambda > max_wavelength) and is linearly
   // interpolated between samples.
   WavelengthFunction(Wavelength min_wavelength, Wavelength max_wavelength,
-      const std::vector<T> values) {
+      const std::vector<T>& values) {
     std::vector<Wavelength> sampling_points;
     for (unsigned int i = 0; i < values.size(); ++i) {
       sampling_points.push_back(
@@ -227,7 +227,7 @@ template<int L1, int WL1, int SA1, int P1, int LP1,
     int L2, int WL2, int SA2, int P2, int LP2>
 WavelengthFunction<Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2, LP1 + LP2>>
 operator*(
-    WavelengthFunction<Scalar<L1, WL1, SA1, P1, LP1>> lhs,
+    const WavelengthFunction<Scalar<L1, WL1, SA1, P1, LP1>>& lhs,
     Scalar<L2, WL2, SA2, P2, LP2> rhs) {
   WavelengthFunction<Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2, LP1 + LP2>>
       result;
@@ -241,8 +241,8 @@ template<int L1, int WL1, int SA1, int P1, int LP1,
     int L2, int WL2, int SA2, int P2, int LP2>
 WavelengthFunction<Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2, LP1 + LP2>>
 operator*(
-    WavelengthFunction<Scalar<L1, WL1, SA1, P1, LP1>> lhs,
-    WavelengthFunction<Scalar<L2, WL2, SA2, P2, LP2>> rhs) {
+    const WavelengthFunction<Scalar<L1, WL1, SA1, P1, LP1>>& lhs,
+    const WavelengthFunction<Scalar<L2, WL2, SA2, P2, LP2>>& rhs) {
   WavelengthFunction<Scalar<L1 + L2, WL1 + WL2, SA1 + SA2, P1 + P2, LP1 + LP2>>
       result;
   for (unsigned int i = 0; i < spectrum::NUM_WAVELENGTH; ++i) {
@@ -255,8 +255,8 @@ template<int L1, int WL1, int SA1, int P1, int LP1,
     int L2, int WL2, int SA2, int P2, int LP2>
 WavelengthFunction<Scalar<L1 - L2, WL1 - WL2, SA1 - SA2, P1 - P2, LP1 - LP2>>
 operator/(
-    WavelengthFunction<Scalar<L1, WL1, SA1, P1, LP1>> lhs,
-    WavelengthFunction<Scalar<L2, WL2, SA2, P2, LP2>> rhs) {
+    const WavelengthFunction<Scalar<L1, WL1, SA1, P1, LP1>>& lhs,
+    const WavelengthFunction<Scalar<L2, WL2, SA2, P2, LP2>>& rhs) {
   WavelengthFunction<Scalar<L1 - L2, WL1 - WL2, SA1 - SA2, P1 - P2, LP1 - LP2>>
       result;
   for (unsigned int i = 0; i < spectrum::NUM_WAVELENGTH; ++i) {
@@ -266,7 +266,8 @@ operator/(
 }
 
 template<typename T>
-WavelengthFunction<T> min(WavelengthFunction<T> a, WavelengthFunction<T> b) {
+WavelengthFunction<T> min(const WavelengthFunction<T>& a,
+    const WavelengthFunction<T>& b) {
   WavelengthFunction<T> result;
   for (unsigned int i = 0; i < result.size(); ++i) {
     result[i] = a[i] < b[i] ? a[i] : b[i];
@@ -275,7 +276,7 @@ WavelengthFunction<T> min(WavelengthFunction<T> a, WavelengthFunction<T> b) {
 }
 
 template<typename T>
-WavelengthFunction<T> exp(WavelengthFunction<T> wavelength_function) {
+WavelengthFunction<T> exp(const WavelengthFunction<T>& wavelength_function) {
   WavelengthFunction<T> result;
   for (unsigned int i = 0; i < result.size(); ++i) {
     result[i] = exp(wavelength_function[i]);
@@ -287,7 +288,7 @@ WavelengthFunction<T> exp(WavelengthFunction<T> wavelength_function) {
 // i.e. integral of function*dlambda from MIN_WAVELENGTH to MAX_WAVELENGTH.
 template<int L, int WL, int SA, int P, int LP>
 Scalar<L, WL + 1, SA, P, LP> Integral(
-    WavelengthFunction<Scalar<L, WL, SA, P, LP>> wavelength_function) {
+    const WavelengthFunction<Scalar<L, WL, SA, P, LP>>& wavelength_function) {
   Scalar<L, WL, SA, P, LP> sum = 0.0 * Scalar<L, WL, SA, P, LP>::Unit();
   for (unsigned int i = 0; i < wavelength_function.size(); ++i) {
     sum = sum + wavelength_function[i];
@@ -303,14 +304,14 @@ Scalar<L, WL + 1, SA, P, LP> Integral(
 // using the specified number of samples.
 template<int L, int WL, int SA, int P, int LP>
 Scalar<L, WL + 1, SA, P, LP> Integral(
-    WavelengthFunction<Scalar<L, WL, SA, P, LP>> wavelength_function,
-     Wavelength min_wavelength, Wavelength max_wavelength,
-     int number_of_wavelengths) {
+    const WavelengthFunction<Scalar<L, WL, SA, P, LP>>& wavelength_function,
+    Wavelength min_wavelength, Wavelength max_wavelength,
+    int number_of_wavelengths) {
   const Wavelength delta_lambda =
       (max_wavelength - min_wavelength) / number_of_wavelengths;
   Wavelength lambda = min_wavelength;
   Scalar<L, WL, SA, P, LP> sum = 0.0 * Scalar<L, WL, SA, P, LP>::Unit();
-  for (unsigned int i = 0; i < number_of_wavelengths; ++i) {
+  for (int i = 0; i < number_of_wavelengths; ++i) {
     sum = sum + wavelength_function(lambda);
     lambda = lambda + delta_lambda;
   }
