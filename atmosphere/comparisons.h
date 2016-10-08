@@ -49,7 +49,7 @@ class Comparisons {
   const std::string& name() const { return name_; }
 
   void RenderSkyImage(const std::string& name, Angle sun_zenith,
-      Angle sun_azimuth) const;
+      Angle sun_azimuth, bool white_balance) const;
 
   void PlotSunIlluminanceAttenuation() const;
 

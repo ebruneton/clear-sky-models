@@ -129,7 +129,7 @@ void DrawCross(Angle sun_zenith, Angle sun_azimuth, int size, uint32_t color,
 
 void DrawCrosses(Angle sun_zenith, Angle sun_azimuth, int width, int height,
     uint32_t* pixels) {
-  DrawCross(sun_zenith, sun_azimuth, 1, 0xFFFF0000, width, height, pixels);
+  DrawCross(sun_zenith, sun_azimuth, 5, 0xFFFF0000, width, height, pixels);
   for (int i = 0; i < 9; ++i) {
     for (int j = 0; j < 9; ++j) {
       Angle view_zenith;
@@ -142,16 +142,16 @@ void DrawCrosses(Angle sun_zenith, Angle sun_azimuth, int width, int height,
   }
 }
 
-Vector3<Number> ToneMapping(Color rgb) {
+vec3 ToneMapping(Color rgb) {
   constexpr Luminance c =
       5.0 * MaxLuminousEfficacy * watt_per_square_meter_per_sr;
-  return Vector3<Number>(
+  return vec3(
       1.0 - exp(-rgb.x / c), 1.0 - exp(-rgb.y / c), 1.0 - exp(-rgb.z / c));
 }
 
 Number GetColorErrorSquare(Color a, Color b) {
-  Vector3<Number> ta = ToneMapping(a);
-  Vector3<Number> tb = ToneMapping(b);
+  vec3 ta = ToneMapping(a);
+  vec3 tb = ToneMapping(b);
   return dot(ta - tb, ta - tb);
 }
 
@@ -164,7 +164,7 @@ Comparisons::Comparisons(const std::string& name, const Atmosphere& atmosphere,
       min_wavelength_(min_wavelength), max_wavelength_(max_wavelength) {}
 
 void Comparisons::RenderSkyImage(const std::string& name, Angle sun_zenith,
-    Angle sun_azimuth) const {
+    Angle sun_azimuth, bool white_balance) const {
   const int width = 1024;
   const int height = 576;
   const Angle kHorizontalFov = 90.0 * deg;
@@ -181,6 +181,10 @@ void Comparisons::RenderSkyImage(const std::string& name, Angle sun_zenith,
   Number normalization_factor = 36.0 * watt_per_square_meter /
       Integral(atmosphere_.GetSkyIrradiance(0.0 * m, sun_zenith));
 
+  std::unique_ptr<vec3[]> dither(new vec3[width * height]);
+  for (int i = 0; i < width * height; ++i) {
+    dither[i] = vec3(0.0, 0.0, 0.0);
+  }
   std::unique_ptr<uint32_t[]> pixels(new uint32_t[width * height]);
   for (int j = 0; j < height; ++j) {
     for (int i = 0; i < width; ++i) {
@@ -197,11 +201,28 @@ void Comparisons::RenderSkyImage(const std::string& name, Angle sun_zenith,
             (1.0 / kSunSolidAngle);
       }
       Color rgb = GetOriginalColor(radiance * normalization_factor);
-      Vector3<Number> color = ToneMapping(rgb);
-      int red = 255.0 * color.x();
-      int green = 255.0 * color.y();
-      int blue = 255.0 * color.z();
+      if (white_balance) {
+        rgb = WhiteBalanceNaive(rgb);
+      }
+      vec3 color = ToneMapping(rgb) * 255.0 + dither[i + j * width];
+      int red = round(color.x());
+      int green = round(color.y());
+      int blue = round(color.z());
       pixels[i + j * width] = (0xFF << 24) | (red << 16) | (green << 8) | blue;
+      // See https://en.wikipedia.org/wiki/Floyd–Steinberg_dithering.
+      vec3 error = color - vec3(red, green, blue);
+      if (i + 1 < width) {
+        dither[(i + 1) + j * width] += error * (7 / 16.0);
+      }
+      if (j + 1 < height) {
+        if (i - 1 >= 0) {
+          dither[(i - 1) + (j + 1) * width] += error * (3 / 16.0);
+        }
+        dither[i + (j + 1) * width] += error * (5 / 16.0);
+        if (i + 1 < width) {
+          dither[(i + 1) + (j + 1) * width] += error * (1 / 16.0);
+        }
+      }
     }
   }
 
@@ -299,7 +320,7 @@ void Comparisons::RenderLuminanceAndImage(const std::string& name,
       blue = 255.0 * (rgb.z / rgb_max)();
       pixels3[i + j * width] = (0xFF << 24) | (red << 16) | (green << 8) | blue;
 
-      Vector3<Number> c = ToneMapping(rgb);
+      vec3 c = ToneMapping(rgb);
       red = 255.0 * c.x();
       green = 255.0 * c.y();
       blue = 255.0 * c.z();
@@ -670,7 +691,7 @@ Color Comparisons::GetOriginalColor(const RadianceSpectrum& radiance) const {
     return GetSrgbColor(radiance);
   } else {
     return GetSrgbColor(radiance, min_wavelength_, max_wavelength_,
-          atmosphere_.GetOriginalNumberOfWavelengths());
+        atmosphere_.GetOriginalNumberOfWavelengths());
   }
 }
 

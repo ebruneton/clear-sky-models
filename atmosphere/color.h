@@ -58,4 +58,8 @@ Color GetSrgbColorFrom3SpectrumSamples(const RadianceSpectrum& spectrum);
 RadianceSpectrum GetApproximateSpectrumFrom3SpectrumSamples(
     const RadianceSpectrum& spectrum);
 
+// Performs a "naive" white balance, by dividing the given color by the
+// (normalized) sun color.
+Color WhiteBalanceNaive(const Color& c);
+
 #endif  // ATMOSPHERE_COLOR_H_

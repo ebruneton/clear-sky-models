@@ -105,3 +105,12 @@ RadianceSpectrum GetApproximateSpectrumFrom3SpectrumSamples(
   SpectralRadiance k = Y / (Y_S0 + Y_S1 * M1 + Y_S2 * M2);
   return S * k;
 }
+
+Color WhiteBalanceNaive(const Color& c) {
+  const Color sun_color = GetSrgbColor(SolarSpectrum() * (1.0 / sr));
+  const Luminance sun_luminance =
+      dot(sun_color, vec3(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0));
+  const auto white_point = sun_color / sun_luminance;
+  return Color(c.x / white_point.x, c.y / white_point.y, c.z / white_point.z);
+}
+

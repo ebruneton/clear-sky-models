@@ -49,7 +49,7 @@ class TestVector : public TestCase {
     Scalar<1, 2, 3, 4, 5> u = Scalar<1, 2, 3, 4, 5>::Unit();
     Vector3<Scalar<1, 2, 3, 4, 5>> v(1.0 * u, 2.0 * u, 3.0 * u);
     Vector3<Scalar<1, 2, 3, 4, 5>> v2 = v + v;
-    Vector3<Scalar<1, 2, 3, 4, 5>> v3 = v - v;
+    Vector3<Scalar<1, 2, 3, 4, 5>> v3 = v - v * 2.0;
     Vector3<Scalar<11, 22, 33, 44, 55>> v4 =
         v2 * (2.0 * Scalar<10, 20, 30, 40, 50>::Unit());
     Vector3<Scalar<1, 2, 3, 4, 5>> v5 =
@@ -63,9 +63,13 @@ class TestVector : public TestCase {
     ExpectEquals(2.0 * u, v2.x);
     ExpectEquals(4.0 * u, v2.y);
     ExpectEquals(6.0 * u, v2.z);
-    ExpectEquals(0.0 * u, v3.x);
-    ExpectEquals(0.0 * u, v3.y);
-    ExpectEquals(0.0 * u, v3.z);
+    v2 += v3;
+    ExpectEquals(1.0 * u, v2.x);
+    ExpectEquals(2.0 * u, v2.y);
+    ExpectEquals(3.0 * u, v2.z);
+    ExpectEquals(-1.0 * u, v3.x);
+    ExpectEquals(-2.0 * u, v3.y);
+    ExpectEquals(-3.0 * u, v3.z);
     ExpectEquals(4.0 * Scalar<11, 22, 33, 44, 55>::Unit(), v4.x);
     ExpectEquals(8.0 * Scalar<11, 22, 33, 44, 55>::Unit(), v4.y);
     ExpectEquals(12.0 * Scalar<11, 22, 33, 44, 55>::Unit(), v4.z);

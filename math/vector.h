@@ -47,11 +47,20 @@ struct Vector3 {
   inline Vector3 operator+(const Vector3& rhs) const {
     return Vector3(x + rhs.x, y + rhs.y, z + rhs.z);
   }
+  inline Vector3& operator+=(const Vector3& rhs) {
+    x += rhs.x;
+    y += rhs.y;
+    z += rhs.z;
+    return *this;
+  }
   inline Vector3 operator-(const Vector3& rhs) const {
     return Vector3(x - rhs.x, y - rhs.y, z - rhs.z);
   }
   inline Vector3 operator-() const {
     return Vector3(-x, -y, -z);
+  }
+  inline Vector3 operator*(const double rhs) const {
+    return Vector3(x * rhs, y * rhs, z * rhs);
   }
 };
 

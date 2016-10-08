@@ -61,15 +61,6 @@ std::string ToString(int i) {
   return out.str();
 }
 
-std::string ToString(double x) {
-  std::stringstream out;
-  out << x;
-  if (out.str().find('.') == std::string::npos) {
-    out << ".0";
-  }
-  return out.str();
-}
-
 constexpr int kNumMeasurements = 17;
 constexpr int kNumModels = 10;
 constexpr int kNumViewSamples = 5;
@@ -302,6 +293,23 @@ void SaveRadiances(const Comparisons& comparisons,
   }
 }
 
+void SaveSkyImages(const Comparisons& comparisons,
+    Location measurement_location, Time measurement_date, bool white_balance) {
+  std::cout << "Rendering sky images..." << std::endl;
+  measurement_date.hours = 6 + 4;
+  measurement_date.minutes = 0;
+  SunCoordinates sun_direction;
+  GetSunDirection(measurement_date, measurement_location, &sun_direction);
+  comparisons.RenderSkyImage(
+      "sunrise", sun_direction.zenith * deg, -30.0 * deg, white_balance);
+
+  measurement_date.hours = 9 + 4;
+  measurement_date.minutes = 30;
+  GetSunDirection(measurement_date, measurement_location, &sun_direction);
+  comparisons.RenderSkyImage(
+      "morning", sun_direction.zenith * deg, 30.0 * deg, white_balance);
+}
+
 void SaveComparisons(const Comparisons& comparisons,
     const std::vector<std::string>& name, const std::vector<Angle>& sun_zenith,
     const std::vector<Angle>& sun_azimuth, Location measurement_location,
@@ -310,19 +318,8 @@ void SaveComparisons(const Comparisons& comparisons,
     std::cout << "Computing sun illuminance attenuation..." << std::endl;
     comparisons.PlotSunIlluminanceAttenuation();
 
-    std::cout << "Rendering sky images..." << std::endl;
-    measurement_date.hours = 6 + 4;
-    measurement_date.minutes = 0;
-    SunCoordinates sun_direction;
-    GetSunDirection(measurement_date, measurement_location, &sun_direction);
-    comparisons.RenderSkyImage(
-        "sunrise", sun_direction.zenith * deg, -30.0 * deg);
-
-    measurement_date.hours = 9 + 4;
-    measurement_date.minutes = 30;
-    GetSunDirection(measurement_date, measurement_location, &sun_direction);
-    comparisons.RenderSkyImage(
-        "morning", sun_direction.zenith * deg, 30.0 * deg);
+    SaveSkyImages(comparisons, measurement_location, measurement_date,
+        false /* white_balance */);
   }
 
   std::vector<Luminance> zenith_luminance;
@@ -599,7 +596,8 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
   }
   file << std::endl << std::endl;
 
-  file << "set terminal postscript eps size 8.5cm,5.0cm \"NimbusSanL-Regu\"\n";
+  file << "set terminal postscript eps enhanced color size 8.5cm,5.0cm"
+       << " \"NimbusSanL-Regu\"\n";
   for (int i : kIndices) {
     file << "set output \"" << Comparisons::GetOutputDirectory()
          << "luminance_profile_" << names[i] << ".eps\"\n"
@@ -615,6 +613,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
              "set key outside center bottom horizontal Left reverse samplen 3 "
              "width -3 maxrows 2\n";
     file << "set pointsize 0.75\n";
+    file << "set bmargin 7\n";
     file << "plot [-90:90][0:25000] ";
     for (int j = 0; j < kNumModels; ++j) {
       if (j > 0) {
@@ -630,7 +629,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
       }
     }
     file << "\nunset xlabel\nunset ylabel\nunset grid\nunset tics\n"
-        "unset border\nunset key\nunset object\n unset title\n";
+        "unset border\nunset key\nunset object\nunset title\nunset bmargin\n";
     SaveSubPlot(&file, sun_zenith[i], sun_azimuth[i], 0 * deg, 135 * deg, true);
     file << "unset multiplot\n\n";
   }
@@ -652,6 +651,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
           "set style line 1 lc rgbcolor \"#eeeeee\"\n"
           "set pointsize 1.25\n"
           "set grid noxtics ytics linestyle 1\n"
+          "set bmargin 7\n"
           "set key outside center bottom horizontal Left reverse samplen 3 "
           "width -3 maxrows 2\n";
       file << "plot [360:720][0:0.28] ";
@@ -672,7 +672,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
         }
       }
       file << "\nunset xlabel\nunset ylabel\nunset grid\nunset tics\n"
-          "unset border\nunset key\nunset object\n";
+          "unset border\nunset key\nunset object\nunset bmargin\n";
       SaveSubPlot(&file, sun_zenith[i], sun_azimuth[i],
           view_zenith, view_azimuth, false);
       file << "unset multiplot" << std::endl << std::endl;
@@ -692,6 +692,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
           "set style line 1 lc rgbcolor \"#eeeeee\"\n"
           "set pointsize 1.25\n"
           "set grid noxtics ytics linestyle 1\n"
+          "set bmargin 6\n"
           "set key outside center bottom horizontal Left reverse maxrows 2\n";
       file << "plot [360:720][0:0.28] ";
       file << "\"" << Comparisons::GetOutputDirectory()
@@ -707,7 +708,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
            << "\" every ::1 t \"" << kCaptions[kNumModels - 1]
            << "\" with lines " << kLineStyle[kNumModels - 1];
       file << "\nunset xlabel\nunset ylabel\nunset grid\nunset tics\n"
-          "unset border\nunset key\nunset object\n";
+          "unset border\nunset key\nunset object\nunset bmargin\n";
       SaveSubPlot(&file, sun_zenith[i], sun_azimuth[i],
           kViewZenithSamples[j] * deg, kViewAzimuthSamples[j] * deg, false);
       file << "unset multiplot" << std::endl << std::endl;
@@ -727,6 +728,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
           "set style line 1 lc rgbcolor \"#eeeeee\"\n"
           "set pointsize 1.25\n"
           "set grid noxtics ytics linestyle 1\n"
+          "set bmargin 6\n"
           "set key outside center bottom horizontal Left reverse maxrows 2\n";
       file << "plot [360:720][0:0.28] ";
       bool is_first_iteration = true;
@@ -757,7 +759,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
              << kDoubleScatteringLineStyle[k];
       }
       file << "\nunset xlabel\nunset ylabel\nunset grid\nunset tics\n"
-          "unset border\nunset key\nunset object\n";
+          "unset border\nunset key\nunset object\nunset bmargin\n";
       SaveSubPlot(&file, sun_zenith[i], sun_azimuth[i],
           kViewZenithSamples[j] * deg, kViewAzimuthSamples[j] * deg, false);
       file << "unset multiplot" << std::endl << std::endl;
@@ -799,7 +801,8 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
   file << std::endl << std::endl;
 
   file << "set output \"" << Comparisons::GetOutputDirectory()
-      << "day_irradiance_sky.eps\"\n";
+       << "day_irradiance_sky.eps\"\n";
+  file << "set bmargin 7\n";
   file << "unset xlabel\n unset ylabel\n";
   file << "plot [][0:] ";
   for (int i = 0; i < kNumModels; ++i) {
@@ -833,27 +836,33 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
 
   file << "set terminal postscript eps size 10cm,5.0cm\n";
   file << "set output \"" << Comparisons::GetOutputDirectory()
-       << "turbidity_rmse.eps\"\n";
+       << "preetham_turbidity_rmse.eps\"\n";
   file << "reset\n"
       "set xrange [2:3]\n"
       "set xtics nomirror\n"
-      "set yrange [0:]\n"
       "set ytics nomirror\n"
-      "set y2tics\n"
       "set xlabel \"Turbidity\"\n"
-      "set ylabel \"Zenith luminance (cd/m^2)\"\n"
-      "set y2label \"Spectral radiance (mW/m^2/sr/nm)\"\n"
+      "set ylabel \"Spectral radiance (mW/m^2/sr/nm)\"\n"
       "set key center top Left reverse\n"
       "plot \"";
   file << Comparisons::GetOutputDirectory()
-       << "zenith_luminance_rmse.txt\" with lines axes x1y1 "
-       << "t \"Karayek et al. RMSE (luminance)\", \""
-       << Comparisons::GetOutputDirectory()
-       << "preetham_rmse.txt\" with lines axes x1y2 "
-       << "t \"Preetham RMSE (spectral radiance)\", \""
-       << Comparisons::GetOutputDirectory()
-       << "hosek_rmse.txt\" using 1:($2*2) with lines axes x1y2 "
-       << "t \"Hosek RMSE * 2 (spectral radiance)\"";
+       << "preetham_rmse.txt\" with lines "
+       << "t \"Preetham RMSE (spectral radiance)\"";
+  file << std::endl << std::endl;
+
+  file << "set output \"" << Comparisons::GetOutputDirectory()
+       << "hosek_turbidity_rmse.eps\"\n";
+  file << "reset\n"
+      "set xrange [2:3]\n"
+      "set xtics nomirror\n"
+      "set ytics nomirror\n"
+      "set xlabel \"Turbidity\"\n"
+      "set ylabel \"Spectral radiance (mW/m^2/sr/nm)\"\n"
+      "set key center top Left reverse\n"
+      "plot \"";
+  file << Comparisons::GetOutputDirectory()
+       << "hosek_rmse.txt\" with lines "
+       << "t \"Hosek RMSE (spectral radiance)\"";
   file << std::endl << std::endl;
 
   file << Comparisons::SaveErrorCaption() << std::endl;
@@ -963,6 +972,10 @@ int main(int argc, char** argv) {
   SaveComparisons(Comparisons("elek", Bruneton(Bruneton::ALL_ORDERS, 15),
       measured, min_wavelength, max_wavelength), name, sun_zenith, sun_azimuth,
       measurement_location, measurement_time, true, false);
+  SaveSkyImages(
+      Comparisons("elek_whitebalance", Bruneton(Bruneton::ALL_ORDERS, 15),
+      measured, min_wavelength, max_wavelength), measurement_location,
+      measurement_time, true /* white_balance */);
 
   std::cout << std::endl << "Hosek model..." << std::endl;
   SaveComparisons(Comparisons("hosek", Hosek(Turbidity), measured,
