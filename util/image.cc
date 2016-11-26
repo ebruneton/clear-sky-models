@@ -170,19 +170,6 @@ struct adler {
 
 #define MOD_ADLER 65521
 
-/* data: Pointer to the data to be summed; len is in bytes */
-unsigned int adler32(unsigned char* data, size_t len) {
-  unsigned int a = 1, b = 0;
-
-  while (len != 0) {
-    a = (a + *data++) % MOD_ADLER;
-    b = (b + a) % MOD_ADLER;
-    len--;
-  }
-
-  return (b << 16) | a;
-}
-
 /* From Wikipedia */
 /* data: Pointer to the data to be summed; len is in bytes */
 struct adler adler32_str(struct adler ctx, unsigned char* data, size_t len) {

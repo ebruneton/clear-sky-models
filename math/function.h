@@ -64,12 +64,12 @@ class Function {
   inline unsigned int size() const { return N; }
 
   inline const T& operator[](int index) const {
-    assert(index >= 0 && index < N);
+    assert(index >= 0 && index < static_cast<int>(N));
     return value_[index];
   }
 
   inline T& operator[](int index) {
-    assert(index >= 0 && index < N);
+    assert(index >= 0 && index < static_cast<int>(N));
     return value_[index];
   }
 
