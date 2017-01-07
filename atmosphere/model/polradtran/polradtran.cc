@@ -44,7 +44,7 @@ PolRadtran::PolRadtran(const std::string& libradtran_uvspec,
   IrradianceSpectrum solar = SolarSpectrum();
   std::ofstream source("output/libradtran/solar_spectrum.txt");
   for (unsigned int i = 0; i < solar.size(); ++i) {
-    source << solar.GetWavelength(i).to(nm) << " "
+    source << solar.GetSample(i).to(nm) << " "
         << solar[i].to(watt_per_square_meter_per_nm) << std::endl;
   }
   source.close();
@@ -52,7 +52,7 @@ PolRadtran::PolRadtran(const std::string& libradtran_uvspec,
   // Wavelengths.
   std::ofstream grid("output/libradtran/wavelength_grid.txt");
   for (unsigned int i = 0; i < solar.size(); ++i) {
-    grid << solar.GetWavelength(i).to(nm) << std::endl;
+    grid << solar.GetSample(i).to(nm) << std::endl;
   }
   grid.close();
 
@@ -61,8 +61,8 @@ PolRadtran::PolRadtran(const std::string& libradtran_uvspec,
   model << "data_files_path " << libradtran_data << "\n";
   model << "\n#source irradiance\n";
   model << "source solar output/libradtran/solar_spectrum.txt per_nm\n";
-  model << "wavelength " << solar.GetWavelength(0).to(nm) << " "
-      << solar.GetWavelength(solar.size() - 1).to(nm) << std::endl;
+  model << "wavelength " << solar.GetSample(0).to(nm) << " "
+      << solar.GetSample(solar.size() - 1).to(nm) << std::endl;
   model << "wavelength_grid_file output/libradtran/wavelength_grid.txt\n";
   model << "\n#molecular properties\n";
   model << "mol_abs_param crs\n";
@@ -159,7 +159,7 @@ void PolRadtran::MaybeComputeSkyDome(Angle sun_zenith) const {
       double radiance;
       double ignored;
       string_stream >> lambda;
-      assert(lambda == spectrum.GetWavelength(j).to(nm));
+      assert(lambda == spectrum.GetSample(j).to(nm));
       for (int k = 0; k < kNumPhi / 2 + (polarization_ ? 6 : 2); ++k) {
         string_stream >> ignored;
       }

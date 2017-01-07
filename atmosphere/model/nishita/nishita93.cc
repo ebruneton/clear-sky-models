@@ -115,8 +115,8 @@ RadianceSpectrum Nishita93::GetSkyRadiance(Length altitude, Angle sun_zenith,
   Length rmu = r * mu;
   Length rmu_s = r * mu_s;
 
-  WavelengthFunction<Length> rayleigh_integral(0.0 * m);
-  WavelengthFunction<Length> mie_integral(0.0 * m);
+  WavelengthFunction<1, 0, 0, 0, 0> rayleigh_integral(0.0 * m);
+  WavelengthFunction<1, 0, 0, 0, 0> mie_integral(0.0 * m);
   Length rayleigh_length = 0.0 * m;
   Length mie_length = 0.0 * m;
   Number previous_rayleigh_density = exp(-altitude / RayleighScaleHeight);

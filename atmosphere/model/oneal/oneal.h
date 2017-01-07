@@ -32,7 +32,6 @@
 
 #include "atmosphere/atmosphere.h"
 #include "math/angle.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 class ONeal : public Atmosphere {

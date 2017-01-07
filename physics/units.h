@@ -30,7 +30,9 @@
 #ifndef PHYSICS_UNITS_H_
 #define PHYSICS_UNITS_H_
 
+#include "math/angle.h"
 #include "math/scalar.h"
+#include "math/scalar_function.h"
 
 // Defines a unit system for radiometric and photometric quantities, using the
 // following five base units: length, wavelength, solid angle, power and lumen
@@ -38,24 +40,48 @@
 // clarity). From this we derive the irradiance, radiance, spectral irradiance,
 // spectral radiance, candela, etc.
 
-typedef Scalar<1, 0, 0, 0, 0> Length;
-typedef Scalar<0, 1, 0, 0, 0> Wavelength;
-typedef Scalar<0, 0, 1, 0, 0> SolidAngle;
-typedef Scalar<0, 0, 0, 1, 0> Power;
-typedef Scalar<0, 0, 0, 0, 1> LuminousPower;
+typedef dimensional::Scalar<1, 0, 0, 0, 0> Length;
+typedef dimensional::Scalar<0, 1, 0, 0, 0> Wavelength;
+typedef dimensional::Scalar<0, 0, 1, 0, 0> SolidAngle;
+typedef dimensional::Scalar<0, 0, 0, 1, 0> Power;
+typedef dimensional::Scalar<0, 0, 0, 0, 1> LuminousPower;
 
-typedef Scalar<2, 0, 0, 0, 0> Area;
-typedef Scalar<3, 0, 0, 0, 0> Volume;
-typedef Scalar<-2, 0, 0, 1, 0> Irradiance;
-typedef Scalar<-2, 0, -1, 1, 0> Radiance;
-typedef Scalar<0, -1, 0, 1, 0> SpectralPower;
-typedef Scalar<-2, -1, 0, 1, 0> SpectralIrradiance;
-typedef Scalar<-2, -1, -1, 1, 0> SpectralRadiance;
-typedef Scalar<-1, 0, 0, 0, 0> ScatteringCoefficient;
-typedef Scalar<0, 0, -1, 0, 0> InverseSolidAngle;
-typedef Scalar<-3, 0, 0, 0, 0> NumberDensity;
-typedef Scalar<0, 0, -1, 0, 1> LuminousIntensity;
-typedef Scalar<-2, 0, -1, 0, 1> Luminance;
+typedef dimensional::Number Number;
+typedef dimensional::Scalar<2, 0, 0, 0, 0> Area;
+typedef dimensional::Scalar<3, 0, 0, 0, 0> Volume;
+typedef dimensional::Scalar<-2, 0, 0, 1, 0> Irradiance;
+typedef dimensional::Scalar<-2, 0, -1, 1, 0> Radiance;
+typedef dimensional::Scalar<0, -1, 0, 1, 0> SpectralPower;
+typedef dimensional::Scalar<-2, -1, 0, 1, 0> SpectralIrradiance;
+typedef dimensional::Scalar<-2, -1, -1, 1, 0> SpectralRadiance;
+typedef dimensional::Scalar<-1, 0, 0, 0, 0> ScatteringCoefficient;
+typedef dimensional::Scalar<0, 0, -1, 0, 0> InverseSolidAngle;
+typedef dimensional::Scalar<-3, 0, 0, 0, 0> NumberDensity;
+typedef dimensional::Scalar<0, 0, -1, 0, 1> LuminousIntensity;
+typedef dimensional::Scalar<-2, 0, -1, 0, 1> Luminance;
+
+// A function from wavelength to values with some physical dimensions.
+template<int U1, int U2, int U3, int U4, int U5>
+using WavelengthFunction = dimensional::ScalarFunction<
+    0, 1, 0, 0, 0, U1, U2, U3, U4, U5, 40, 360, 830>;
+
+// A function from wavelength to dimensionless values.
+typedef WavelengthFunction<0, 0, 0, 0, 0> DimensionlessSpectrum;
+
+// A function from wavelength to spectral power values.
+typedef WavelengthFunction<0, -1, 0, 1, 0> PowerSpectrum;
+
+// A function from wavelength to spectral irradiance values.
+typedef WavelengthFunction<-2, -1, 0, 1, 0> IrradianceSpectrum;
+
+// A function from wavelength to spectral radiance values.
+typedef WavelengthFunction<-2, -1, -1, 1, 0> RadianceSpectrum;
+
+// A function from wavelength to scattering coefficient values.
+typedef WavelengthFunction<-1, 0, 0, 0, 0> ScatteringSpectrum;
+
+// A function from wavelength to phase function values.
+typedef WavelengthFunction<0, 0, -1, 0, 0> PhaseFunctionSpectrum;
 
 // Provides aliases for the five base units, with shorter names than
 // Length::Unit(), Wavelength::Unit(), etc.
@@ -80,5 +106,15 @@ constexpr LuminousIntensity cd = lm / sr;
 constexpr LuminousIntensity kcd = 1000.0 * cd;
 constexpr Luminance cd_per_square_meter = cd / m2;
 constexpr Luminance kcd_per_square_meter = kcd / m2;
+
+// Provides aliases for angle types and constants in the dimensional package, to
+// avoid having to use qualified type names and / or "using" directives in files
+// using this header.
+
+typedef dimensional::Angle Angle;
+constexpr Angle rad = dimensional::rad;
+constexpr Angle deg = dimensional::deg;
+constexpr double PI = dimensional::PI;
+constexpr Angle pi = dimensional::pi;
 
 #endif  // PHYSICS_UNITS_H_

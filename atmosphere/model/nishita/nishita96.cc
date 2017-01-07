@@ -35,6 +35,8 @@
 
 namespace {
 
+using dimensional::vec3;
+
 constexpr Length kHorizonDist =
     sqrt(AtmosphereRadius * AtmosphereRadius - EarthRadius * EarthRadius);
 
@@ -96,9 +98,9 @@ RadianceSpectrum Nishita96::GetSkyRadiance(Length altitude, Angle sun_zenith,
   Length rmu = r * mu;
   Length rmu_s = r * mu_s;
 
-  WavelengthFunction<Length> rayleigh_integral(0.0 * m);
-  WavelengthFunction<Length> mie_integral(0.0 * m);
-  WavelengthFunction<InverseSolidAngle> double_scattering_integral(0.0 / sr);
+  WavelengthFunction<1, 0, 0, 0, 0> rayleigh_integral(0.0 * m);
+  WavelengthFunction<1, 0, 0, 0, 0> mie_integral(0.0 * m);
+  WavelengthFunction<0, 0, -1, 0, 0> double_scattering_integral(0.0 / sr);
   Length rayleigh_length = 0.0 * m;
   Length mie_length = 0.0 * m;
   Number previous_rayleigh_density = exp(-altitude / RayleighScaleHeight);
@@ -146,8 +148,7 @@ RadianceSpectrum Nishita96::GetSkyRadiance(Length altitude, Angle sun_zenith,
       // Transmittance from the viewer to p_i.
       DimensionlessSpectrum transmittance_i(exp(-(RayleighScattering() *
           rayleigh_length + MieExtinction() * mie_length)));
-      WavelengthFunction<Scalar<-1, 0, -1, 0, 0>>
-          double_scattering(0.0 / m / sr);
+      WavelengthFunction<-1, 0, -1, 0, 0> double_scattering(0.0 / m / sr);
       for (int j = 0; j < 8; ++j) {
         double_scattering +=
             sample_single_scattering_[j].GetSingleScattering(p_i) * (
@@ -175,11 +176,10 @@ void Nishita96::SingleScatteringTable::Init(
   view_zenith_ = view_zenith;
   cos_view_zenith_ = cos(view_zenith);
   sin_view_zenith_ = sin(view_zenith);
-  value_ = SingleScatteringFunction(
-      WavelengthFunction<InverseSolidAngle>(0.0 / sr));
+  value_.Set(WavelengthFunction<0, 0, -1, 0, 0>(0.0 / sr));
 }
 
-WavelengthFunction<InverseSolidAngle>
+WavelengthFunction<0, 0, -1, 0, 0>
 Nishita96::SingleScatteringTable::GetSingleScattering(const Position& p) const {
   vec3 u;
   GetU(p, &u);
@@ -323,8 +323,8 @@ void Nishita96::PreComputeSingleScattering(const Position& p,
   // direction d, where the integral at a new point is the integral at the
   // previous point times the transmittance between these two points, plus the
   // integral over the segment between the two points.
-  WavelengthFunction<Length> rayleigh_integral(0.0 * m);
-  WavelengthFunction<Length> mie_integral(0.0 * m);
+  WavelengthFunction<1, 0, 0, 0, 0> rayleigh_integral(0.0 * m);
+  WavelengthFunction<1, 0, 0, 0, 0> mie_integral(0.0 * m);
 
   Length altitude = length(p + d * start_t) - EarthRadius;
   Number previous_rayleigh_density = exp(-altitude / RayleighScaleHeight);
@@ -336,7 +336,7 @@ void Nishita96::PreComputeSingleScattering(const Position& p,
   // atmosphere, or the ground radiance (Sun irradiance times the transmittance
   // times the albedo times the Lambert BRDF). Does not include the solar
   // spectrum factor, added later.
-  WavelengthFunction<InverseSolidAngle> background(0.0 / sr);
+  WavelengthFunction<0, 0, -1, 0, 0> background(0.0 / sr);
   if (altitude < (AtmosphereRadius - EarthRadius) * 0.5) {
     background = previous_sun_transmittance *
         (GroundAlbedo() * (1.0 / (PI * sr)) *
@@ -372,11 +372,11 @@ void Nishita96::PreComputeSingleScattering(const Position& p,
     // constant phase function, solar spectrum and RayleighScattering() or
     // MieScattering() factors, added later). Integral computed using
     // trapezoidal integration.
-    WavelengthFunction<Length> rayleigh_segment_integral =
+    WavelengthFunction<1, 0, 0, 0, 0> rayleigh_segment_integral =
         (sun_transmittance * rayleigh_density + previous_sun_transmittance *
          segment_transmittance * previous_rayleigh_density) *
          half_segment_length;
-    WavelengthFunction<Length> mie_segment_integral =
+    WavelengthFunction<1, 0, 0, 0, 0> mie_segment_integral =
         (sun_transmittance * mie_density + previous_sun_transmittance *
          segment_transmittance * previous_mie_density) * half_segment_length;
 

@@ -151,7 +151,7 @@ LibRadtran::LibRadtran(const std::string& libradtran_uvspec,
   IrradianceSpectrum solar = SolarSpectrum();
   std::ofstream source("output/libradtran/solar_spectrum.txt");
   for (unsigned int i = 0; i < solar.size(); ++i) {
-    source << solar.GetWavelength(i).to(nm) << " "
+    source << solar.GetSample(i).to(nm) << " "
         << solar[i].to(watt_per_square_meter_per_nm) << std::endl;
   }
   source.close();
@@ -178,8 +178,8 @@ LibRadtran::LibRadtran(const std::string& libradtran_uvspec,
   molecular_scattering << std::endl;
   molecular_absorption << std::endl;
   for (unsigned int i = 0; i < rayleigh.size(); ++i) {
-    molecular_scattering << rayleigh.GetWavelength(i).to(nm) << " ";
-    molecular_absorption << rayleigh.GetWavelength(i).to(nm) << " ";
+    molecular_scattering << rayleigh.GetSample(i).to(nm) << " ";
+    molecular_absorption << rayleigh.GetSample(i).to(nm) << " ";
     for (int j = 0; j < kNumLayers; ++j) {
       Number dtau = rayleigh[i] * RayleighScaleHeight * (
           exp(-AltitudeKm(j + 1) * km / RayleighScaleHeight) -
@@ -212,7 +212,7 @@ LibRadtran::LibRadtran(const std::string& libradtran_uvspec,
     for (unsigned int j = 0; j < mie_scattering.size(); ++j) {
       ScatteringCoefficient extinction = i == 0 ? 0.0 / m :
           mie_extinction[j] * exp(-AltitudeKm(i) * km / MieScaleHeight);
-      layer_properties << mie_scattering.GetWavelength(j).to(nm) << " ";
+      layer_properties << mie_scattering.GetSample(j).to(nm) << " ";
       layer_properties << extinction.to(1.0 / km) << " ";
       layer_properties << (mie_scattering[j] / mie_extinction[j])();
       for (int k = 0; k < kNumMoments; ++k) {
@@ -228,7 +228,7 @@ LibRadtran::LibRadtran(const std::string& libradtran_uvspec,
   std::ofstream albedo_stream("output/libradtran/albedo.txt");
   DimensionlessSpectrum albedo = GroundAlbedo();
   for (unsigned int i = 0; i < albedo.size(); ++i) {
-    albedo_stream << albedo.GetWavelength(i).to(nm) << " "
+    albedo_stream << albedo.GetSample(i).to(nm) << " "
                   << (ground_albedo ? albedo[i]() : 0.0) << std::endl;
   }
   albedo_stream.close();
@@ -237,8 +237,8 @@ LibRadtran::LibRadtran(const std::string& libradtran_uvspec,
   std::ofstream model("output/libradtran/model.txt");
   model << "#source irradiance\n";
   model << "source solar output/libradtran/solar_spectrum.txt per_nm\n";
-  model << "wavelength " << solar.GetWavelength(0).to(nm) << " "
-      << solar.GetWavelength(solar.size() - 1).to(nm) << std::endl;
+  model << "wavelength " << solar.GetSample(0).to(nm) << " "
+      << solar.GetSample(solar.size() - 1).to(nm) << std::endl;
   model << "\n#atmosphere profile\n";
   model << "atmosphere_file output/libradtran/atmosphere.txt\n";
   model << "earth_radius " << EarthRadius.to(km) << std::endl;
@@ -328,7 +328,7 @@ void LibRadtran::MaybeComputeBinaryFunctionCache(Angle sun_zenith) const {
   for (unsigned int i = 0; i < spectrum.size(); ++i) {
     double lambda;
     string_stream >> lambda;
-    assert(lambda * nm == spectrum.GetWavelength(i));
+    assert(lambda * nm == spectrum.GetSample(i));
     for (int j = 0; j < kNumTheta; ++j) {
       for (int k = 0; k < kNumPhi / 2; ++k) {
         double radiance;
@@ -376,7 +376,7 @@ void LibRadtran::MaybeComputeHemisphericalFunctionCache(Angle sun_zenith,
   for (unsigned int l = 0; l < spectrum.size(); ++l) {
     double lambda;
     string_stream >> lambda;
-    assert(lambda * nm == spectrum.GetWavelength(l));
+    assert(lambda * nm == spectrum.GetSample(l));
     for (unsigned int x = 0; x < view_zeniths.size(); ++x) {
       for (unsigned int y = 0; y < view_azimuths.size(); ++y) {
         double radiance;

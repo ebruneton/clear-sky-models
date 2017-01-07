@@ -28,6 +28,7 @@
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -65,17 +66,17 @@ constexpr int kNumMeasurements = 17;
 constexpr int kNumModels = 10;
 constexpr int kNumViewSamples = 5;
 
-const std::string kModels[kNumModels] = {
+const char* kModels[kNumModels] = {
   "nishita93", "nishita96", "preetham", "oneal", "haber", "bruneton", "elek",
   "hosek", "libradtran", "measurements"
 };
 
-const std::string kCaptions[kNumModels] = {
+const char* kCaptions[kNumModels] = {
   "Nishita93", "Nishita96", "Preetham", "O'Neal", "Haber", "Bruneton", "Elek",
   "Hosek", "libRadtran", "Measurements"
 };
 
-const std::string kLineStyle[kNumModels] = {
+const char* kLineStyle[kNumModels] = {
   "lt 1 lc rgbcolor \"#666666\" pt 9",   // nishita93
   "lt 1 lc rgbcolor \"#aaaaaa\" pt 8",   // nishita96
   "lt 1 lc rgbcolor \"#999999\" pt 13",  // preetham
@@ -88,7 +89,7 @@ const std::string kLineStyle[kNumModels] = {
   "lt 1 lc rgbcolor \"#ff0000\" lw 3"    // measurements
 };
 
-const std::string kSingleScatteringLineStyle[kNumModels] = {
+const char* kSingleScatteringLineStyle[kNumModels] = {
   "",                                    // nishita93
   "lt 1 lc rgbcolor \"#666666\" pt 8",   // nishita96
   "",                                    // preetham
@@ -100,7 +101,7 @@ const std::string kSingleScatteringLineStyle[kNumModels] = {
   ""                                     // measurements
 };
 
-const std::string kDoubleScatteringLineStyle[kNumModels] = {
+const char* kDoubleScatteringLineStyle[kNumModels] = {
   "",                                    // nishita93
   "lt 1 lc rgbcolor \"#aaaaaa\" pt 8",   // nishita96
   "",                                    // preetham
@@ -112,7 +113,7 @@ const std::string kDoubleScatteringLineStyle[kNumModels] = {
   ""                                     // measurements
 };
 
-const std::string kMeasurements = "measurements";
+const char* kMeasurements = kModels[kNumModels - 1];
 
 const double kViewZenithSamples[kNumViewSamples] = {
   90.0 - 12.1151, 90.0 - 53.3665, 90.0 - 53.3665, 90.0 - 12.1151, 90.0 - 71.9187
@@ -136,8 +137,7 @@ void SaveLibRadtranRmseTable(const std::string& libradtran_uvspec,
     return std::make_pair(std::make_pair(index(alpha), index(beta)), index(g));
   };
   std::map<std::pair<std::pair<int, int>, int>, double> already_computed;
-  std::ifstream input(
-      Comparisons::GetOutputDirectory() + "libradtran_rmse.txt");
+  std::ifstream input(Comparisons::GetOutputDir() + "libradtran_rmse.txt");
   if (input) {
     while (!input.eof()) {
       double alpha, beta, g, rmse;
@@ -149,8 +149,7 @@ void SaveLibRadtranRmseTable(const std::string& libradtran_uvspec,
 
   SpectralRadiance min_rmse = 0.0 * watt_per_square_meter_per_sr_per_nm;
   double min_alpha, min_beta, min_g;
-  std::ofstream output(
-      Comparisons::GetOutputDirectory() + "libradtran_rmse.txt",
+  std::ofstream output(Comparisons::GetOutputDir() + "libradtran_rmse.txt",
       std::ofstream::app);
   for (double alpha = 0.0; alpha <= 2.0; alpha += 0.2) {
     for (double beta = 0.02; beta <= 0.2; beta += 0.02) {
@@ -192,13 +191,13 @@ void SaveZenithLuminanceRmseTable(const MeasuredAtmospheres& measurements,
     const std::vector<Angle>& sun_zenith, Wavelength min_wavelength,
     Wavelength max_wavelength) {
   std::ifstream input(
-      Comparisons::GetOutputDirectory() + "zenith_luminance_rmse.txt");
+      Comparisons::GetOutputDir() + "zenith_luminance_rmse.txt");
   if (input) {
     input.close();
   } else {
     std::cout << "Computing zenith luminance RMSE table..." << std::endl;
     std::ofstream output(
-        Comparisons::GetOutputDirectory() + "zenith_luminance_rmse.txt");
+        Comparisons::GetOutputDir() + "zenith_luminance_rmse.txt");
     Comparisons comparisons("", measurements, measurements, min_wavelength,
         max_wavelength);
     for (double turbidity = 2.0; turbidity <= 4.0; turbidity += 0.01) {
@@ -226,13 +225,12 @@ void SaveZenithLuminanceRmseTable(const MeasuredAtmospheres& measurements,
 void SavePreethamRmseTable(const MeasuredAtmospheres& measurements,
     const std::vector<Angle>& sun_zenith, const std::vector<Angle>& sun_azimuth,
     Wavelength min_wavelength, Wavelength max_wavelength) {
-  std::ifstream input(Comparisons::GetOutputDirectory() + "preetham_rmse.txt");
+  std::ifstream input(Comparisons::GetOutputDir() + "preetham_rmse.txt");
   if (input) {
     input.close();
   } else {
     std::cout << "Computing Preetham RMSE table..." << std::endl;
-    std::ofstream output(
-        Comparisons::GetOutputDirectory() + "preetham_rmse.txt");
+    std::ofstream output(Comparisons::GetOutputDir() + "preetham_rmse.txt");
     for (double turbidity = 2.0; turbidity <= 4.0; turbidity += 0.01) {
       SpectralRadiance rmse = Comparisons("", Preetham(turbidity), measurements,
           min_wavelength, max_wavelength).ComputeTotalRmse(
@@ -248,12 +246,12 @@ void SavePreethamRmseTable(const MeasuredAtmospheres& measurements,
 void SaveHosekRmseTable(const MeasuredAtmospheres& measurements,
     const std::vector<Angle>& sun_zenith, const std::vector<Angle>& sun_azimuth,
     Wavelength min_wavelength, Wavelength max_wavelength) {
-  std::ifstream input(Comparisons::GetOutputDirectory() + "hosek_rmse.txt");
+  std::ifstream input(Comparisons::GetOutputDir() + "hosek_rmse.txt");
   if (input) {
     input.close();
   } else {
     std::cout << "Computing Hosek RMSE table..." << std::endl;
-    std::ofstream output(Comparisons::GetOutputDirectory() + "hosek_rmse.txt");
+    std::ofstream output(Comparisons::GetOutputDir() + "hosek_rmse.txt");
     for (double turbidity = 2.0; turbidity <= 4.0; turbidity += 0.01) {
       SpectralRadiance rmse = Comparisons("", Hosek(turbidity), measurements,
           min_wavelength, max_wavelength).ComputeTotalRmse(
@@ -384,8 +382,7 @@ void SaveComparisons(const Comparisons& comparisons,
     GetSunDirection(measurement_date, measurement_location, &sun_direction);
     std::string name = ToString(minutes / 60) + "h" + ToString(minutes % 60);
     if (is_measurement) {
-      std::ofstream sza(
-          Comparisons::GetOutputDirectory() + "sza_" + name + ".txt");
+      std::ofstream sza(Comparisons::GetOutputDir() + "sza_" + name + ".txt");
       sza << round(sun_direction.zenith) << std::endl;
       sza.close();
     } else {
@@ -400,7 +397,7 @@ void SaveComparisons(const Comparisons& comparisons,
     SpectralRadiance rmse = sqrt(error_square_sum / count);
     double rounded_rmse =
         round(rmse.to(1e-4 * watt_per_square_meter_per_sr_per_nm)) / 10.0;
-    std::ofstream file_percent(Comparisons::GetOutputDirectory() +
+    std::ofstream file_percent(Comparisons::GetOutputDir() +
         "error_total_" + comparisons.name() + ".txt");
     file_percent << rounded_rmse << std::endl;
     file_percent.close();
@@ -410,7 +407,7 @@ void SaveComparisons(const Comparisons& comparisons,
         sqrt(error_square_sum_with_approximate_spectrum / count);
     double rounded_rmse = round(rmse_with_approximate_spectrum.to(
         1e-4 * watt_per_square_meter_per_sr_per_nm)) / 10.0;
-    std::ofstream file_percent(Comparisons::GetOutputDirectory() +
+    std::ofstream file_percent(Comparisons::GetOutputDir() +
         "error_total_with_approximate_spectrum_" + comparisons.name() + ".txt");
     file_percent << rounded_rmse << std::endl;
     file_percent.close();
@@ -419,9 +416,9 @@ void SaveComparisons(const Comparisons& comparisons,
 
 void SaveSolarSpectrum() {
   IrradianceSpectrum solar = SolarSpectrum();
-  std::ofstream file(Comparisons::GetOutputDirectory() + "solar_spectrum.txt");
+  std::ofstream file(Comparisons::GetOutputDir() + "solar_spectrum.txt");
   for (unsigned int i = 0; i < solar.size(); ++i) {
-    file << solar.GetWavelength(i).to(nm) << " "
+    file << solar.GetSample(i).to(nm) << " "
         << solar[i].to(watt_per_square_meter_per_nm) << std::endl;
   }
   file.close();
@@ -500,7 +497,7 @@ void SaveMiePhaseFunction() {
     }
   }
   double g = CornetteShanksG(asymmetry_factor);
-  std::ofstream file(Comparisons::GetOutputDirectory() + "phasefunction.txt");
+  std::ofstream file(Comparisons::GetOutputDir() + "phasefunction.txt");
   for (unsigned int i = 3; i < values[0].size(); ++i) {
     double theta = values[0][i] / 180.0 * PI;
     double mie = CornetteShanks(g, theta);
@@ -554,32 +551,32 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
     const std::vector<std::string>& names,
     const std::vector<Angle>& sun_zenith,
     const std::vector<Angle>& sun_azimuth) {
-  std::ofstream file(Comparisons::GetOutputDirectory() + "main.plot");
+  std::ofstream file(Comparisons::GetOutputDir() + "main.plot");
   file << "set terminal postscript eps size 6.8cm,4cm \"NimbusSanL-Regu\"\n"
        << "set tics in nomirror scale 0.2\n"
        << "set style line 1 lc rgbcolor \"#eeeeee\"\n"
        << "set grid noxtics ytics linestyle 1\n\n";
 
-  file << "set output \"" << Comparisons::GetOutputDirectory()
+  file << "set output \"" << Comparisons::GetOutputDir()
        << "solar_spectrum.eps\"\n"
        << "set xlabel \"Wavelength (nm)\"\n"
        << "set ylabel \"Spectral Irradiance (W/m2/nm)\"\n"
        << "plot [360:830] \"input/astm-g173.txt\" with lines t \"ASTM-G173\", "
-       << "\"" << Comparisons::GetOutputDirectory() << "solar_spectrum.txt\" "
+       << "\"" << Comparisons::GetOutputDir() << "solar_spectrum.txt\" "
        << "t \"Our Solar Spectrum\" with lines\n\n";
 
-  file << "set output \"" << Comparisons::GetOutputDirectory()
+  file << "set output \"" << Comparisons::GetOutputDir()
        << "phase_function.eps\"\n"
        << "set xlabel \"Scattering angle (degrees)\"\n"
        << "set ylabel \"Value (unitless)\"\n"
        << "set logscale y\n"
-       << "plot \"" << Comparisons::GetOutputDirectory()
+       << "plot \"" << Comparisons::GetOutputDir()
        << "phasefunction.txt\" using 1:2 with lines "
        << "t \"Measured\", \"\" using 1:3 with lines t \"Cornette-Shanks\", "
        << "\"\" using 1:($3/$2) with lines t \"Ratio\"\n"
        << "unset logscale y\n\n";
 
-  file << "set output \"" << Comparisons::GetOutputDirectory()
+  file << "set output \"" << Comparisons::GetOutputDir()
        << "sun_illuminance_attenuation.eps\"\n"
        << "set xlabel \"Sun zenith angle (degrees)\"\n"
        << "set ylabel \"Sun illuminance attenuation\"\n"
@@ -590,7 +587,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
     } else if (i > 0) {
       file << ", ";
     }
-    file << "\"" << Comparisons::GetOutputDirectory()
+    file << "\"" << Comparisons::GetOutputDir()
          << "sun_illuminance_attenuation_" << kModels[i] << ".txt\" "
          << "t \"" << kCaptions[i] << "\" with lines";
   }
@@ -599,7 +596,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
   file << "set terminal postscript eps enhanced color size 8.5cm,5.0cm"
        << " \"NimbusSanL-Regu\"\n";
   for (int i : kIndices) {
-    file << "set output \"" << Comparisons::GetOutputDirectory()
+    file << "set output \"" << Comparisons::GetOutputDir()
          << "luminance_profile_" << names[i] << ".eps\"\n"
          << "reset\n"
          << "set title \"" << names[i] << " / "
@@ -619,7 +616,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
       if (j > 0) {
         file << ", ";
       }
-      file << "\"" << Comparisons::GetOutputDirectory()
+      file << "\"" << Comparisons::GetOutputDir()
            << "luminance_profile_" << names[i] << "_" << kModels[j]
            << ".txt\" t \"" << kCaptions[j] << "\"";
       if (kModels[j] == kMeasurements) {
@@ -641,7 +638,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
       Angle view_azimuth;
       HemisphericalFunction<Number>::GetSampleDirection(
           x, y, &view_zenith, &view_azimuth);
-      file << "set output \"" << Comparisons::GetOutputDirectory()
+      file << "set output \"" << Comparisons::GetOutputDir()
            << "radiance_" << names[i] << "_" << x << "_" << y << ".eps\"\n";
       file << "reset\n"
           "set multiplot\n"
@@ -664,7 +661,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
                << " every ::1 t \"" << kCaptions[k]
                << "\" with lines " << kLineStyle[k];
         } else {
-          file << "\"" << Comparisons::GetOutputDirectory()
+          file << "\"" << Comparisons::GetOutputDir()
                << "radiance_" << names[i] << "_" << view_zenith.to(deg) << "_"
                << view_azimuth.to(deg) << "_" << kModels[k]
                << ".txt\" t \"" << kCaptions[k] << "\""
@@ -681,7 +678,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
 
   for (int i : kIndices) {
     for (int j = 0; j < kNumViewSamples; ++j) {
-      file << "set output \"" << Comparisons::GetOutputDirectory()
+      file << "set output \"" << Comparisons::GetOutputDir()
            << "albedo_impact_" << names[i] << "_" << kViewZenithSamples[j]
            << "_" << kViewAzimuthSamples[j] << ".eps\"" << std::endl;
       file << "reset\n"
@@ -695,11 +692,11 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
           "set bmargin 6\n"
           "set key outside center bottom horizontal Left reverse maxrows 2\n";
       file << "plot [360:720][0:0.28] ";
-      file << "\"" << Comparisons::GetOutputDirectory()
+      file << "\"" << Comparisons::GetOutputDir()
            << "radiance_" << names[i] << "_" << kViewZenithSamples[j] << "_"
            << kViewAzimuthSamples[j] << "_libradtran.txt\" "
            << "t \"libRadtran with ground albedo\" with lines, ";
-      file << "\"" << Comparisons::GetOutputDirectory()
+      file << "\"" << Comparisons::GetOutputDir()
            << "radiance_" << names[i] << "_" << kViewZenithSamples[j] << "_"
            << kViewAzimuthSamples[j] << "_libradtran_no_ground_albedo.txt\" "
            << "t \"libRadtran without ground albedo\" with lines, ";
@@ -717,7 +714,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
 
   for (int i : kIndices) {
     for (int j = 0; j < kNumViewSamples; ++j) {
-      file << "set output \"" << Comparisons::GetOutputDirectory()
+      file << "set output \"" << Comparisons::GetOutputDir()
            << "ms_radiance_" << names[i] << "_" << kViewZenithSamples[j] << "_"
            << kViewAzimuthSamples[j] << ".eps\"" << std::endl;
       file << "reset\n"
@@ -733,14 +730,15 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
       file << "plot [360:720][0:0.28] ";
       bool is_first_iteration = true;
       for (int k = 0; k < kNumModels; ++k) {
-        if (kModels[k] != "bruneton" && kModels[k] != "haber" &&
-            kModels[k] != "nishita96") {
+        if (strcmp(kModels[k], "bruneton")  != 0 &&
+            strcmp(kModels[k], "haber") != 0 &&
+            strcmp(kModels[k], "nishita96") != 0) {
           continue;
         }
         if (!is_first_iteration) {
           file << ", ";
         }
-        file << "\"" << Comparisons::GetOutputDirectory()
+        file << "\"" << Comparisons::GetOutputDir()
              << "radiance_" << names[i] << "_" << kViewZenithSamples[j] << "_"
              << kViewAzimuthSamples[j] << "_" << kModels[k] << "_ss.txt\" t \""
              << kCaptions[k] << " SS\"" << " with linespoints "
@@ -748,11 +746,12 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
         is_first_iteration = false;
       }
       for (int k = 0; k < kNumModels; ++k) {
-        if (kModels[k] != "bruneton" && kModels[k] != "haber" &&
-            kModels[k] != "nishita96") {
+        if (strcmp(kModels[k], "bruneton") != 0 &&
+            strcmp(kModels[k], "haber") != 0 &&
+            strcmp(kModels[k], "nishita96") != 0) {
           continue;
         }
-        file << ", \"" << Comparisons::GetOutputDirectory()
+        file << ", \"" << Comparisons::GetOutputDir()
              << "radiance_" << names[i] << "_" << kViewZenithSamples[j] << "_"
              << kViewAzimuthSamples[j] << "_" << kModels[k] << "_ds.txt\" t \""
              << kCaptions[k] << " DS\"" << " with linespoints "
@@ -768,7 +767,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
 
   file << "reset\n";
 
-  file << "set output \"" << Comparisons::GetOutputDirectory()
+  file << "set output \"" << Comparisons::GetOutputDir()
        << "day_zenith_luminance.eps\"\n"
           "set object rectangle from screen 0,0 to screen 1,1 behind "
           "fc rgb \"white\" fs solid noborder\n"
@@ -792,7 +791,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
     if (i > 0) {
       file << ", ";
     }
-    file << "\"" << Comparisons::GetOutputDirectory()
+    file << "\"" << Comparisons::GetOutputDir()
          << "day_zenith_luminance_" << kModels[i] << ".txt\" "
          << "t \"" << kCaptions[i] << "\" with "
          << (kModels[i] == kMeasurements ? "lines " : "linespoints ")
@@ -800,7 +799,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
   }
   file << std::endl << std::endl;
 
-  file << "set output \"" << Comparisons::GetOutputDirectory()
+  file << "set output \"" << Comparisons::GetOutputDir()
        << "day_irradiance_sky.eps\"\n";
   file << "set bmargin 7\n";
   file << "unset xlabel\n unset ylabel\n";
@@ -809,7 +808,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
     if (i > 0) {
       file << ", ";
     }
-    file << "\"" << Comparisons::GetOutputDirectory()
+    file << "\"" << Comparisons::GetOutputDir()
          << "day_irradiance_" << kModels[i] << ".txt\" "
          << "using 1:3 t \"" << kCaptions[i] << "\" with "
          << (kModels[i] == kMeasurements ? "lines " : "linespoints ")
@@ -817,17 +816,17 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
   }
   file << std::endl << std::endl;
 
-  file << "set output \"" << Comparisons::GetOutputDirectory()
+  file << "set output \"" << Comparisons::GetOutputDir()
        << "day_irradiance_total.eps\"\n";
   file << "unset xlabel\n unset ylabel\n";
   file << "plot [][0:] ";
   for (int i = 0; i < kNumModels; ++i) {
-    if (kModels[i] == kMeasurements || kModels[i] == "libradtran") {
+    if (kModels[i] == kMeasurements || strcmp(kModels[i], "libradtran") == 0) {
       continue;
     } else if (i > 0) {
       file << ", ";
     }
-    file << "\"" << Comparisons::GetOutputDirectory()
+    file << "\"" << Comparisons::GetOutputDir()
          << "day_irradiance_" << kModels[i] << ".txt\" "
          << "using 1:2 t \"" << kCaptions[i]
          << "\" with linespoints " << kLineStyle[i];
@@ -835,7 +834,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
   file << std::endl << std::endl;
 
   file << "set terminal postscript eps size 10cm,5.0cm\n";
-  file << "set output \"" << Comparisons::GetOutputDirectory()
+  file << "set output \"" << Comparisons::GetOutputDir()
        << "preetham_turbidity_rmse.eps\"\n";
   file << "reset\n"
       "set xrange [2:3]\n"
@@ -845,12 +844,12 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
       "set ylabel \"Spectral radiance (mW/m^2/sr/nm)\"\n"
       "set key center top Left reverse\n"
       "plot \"";
-  file << Comparisons::GetOutputDirectory()
+  file << Comparisons::GetOutputDir()
        << "preetham_rmse.txt\" with lines "
        << "t \"Preetham RMSE (spectral radiance)\"";
   file << std::endl << std::endl;
 
-  file << "set output \"" << Comparisons::GetOutputDirectory()
+  file << "set output \"" << Comparisons::GetOutputDir()
        << "hosek_turbidity_rmse.eps\"\n";
   file << "reset\n"
       "set xrange [2:3]\n"
@@ -860,7 +859,7 @@ void SavePlot(const std::vector<MeasuredAtmosphere*>& measurements,
       "set ylabel \"Spectral radiance (mW/m^2/sr/nm)\"\n"
       "set key center top Left reverse\n"
       "plot \"";
-  file << Comparisons::GetOutputDirectory()
+  file << Comparisons::GetOutputDir()
        << "hosek_rmse.txt\" with lines "
        << "t \"Hosek RMSE (spectral radiance)\"";
   file << std::endl << std::endl;
@@ -915,7 +914,7 @@ int main(int argc, char** argv) {
     measurements.push_back(atmosphere);
     measured.AddAtmosphere(atmosphere);
     std::ofstream sza(
-        Comparisons::GetOutputDirectory() + "sza_" + name.back() + ".txt");
+        Comparisons::GetOutputDir() + "sza_" + name.back() + ".txt");
     sza << round(sun_direction.zenith) << std::endl;
     sza.close();
   }

@@ -1,0 +1,6 @@
+[submodule "external/dimensional_types"]
+	path = external/dimensional_types
+	url = https://github.com/ebruneton/dimensional_types
+[submodule "external/minpng"]
+	path = external/minpng
+	url = https://github.com/jrmuizel/minpng

@@ -74,13 +74,13 @@ double SolarSpectrumCorrectionFactor(Wavelength lambda) {
 }  // anonymous namespace
 
 Hosek::Hosek(double turbidity) : turbidity_(turbidity) {
-  for (unsigned int i = 0; i < spectrum::NUM_WAVELENGTH; ++i) {
+  for (unsigned int i = 0; i < DimensionlessSpectrum::SIZE; ++i) {
     sky_model_state_[i] = NULL;
   }
 }
 
 Hosek::~Hosek() {
-  for (unsigned int i = 0; i < spectrum::NUM_WAVELENGTH; ++i) {
+  for (unsigned int i = 0; i < DimensionlessSpectrum::SIZE; ++i) {
     if (sky_model_state_[i] != NULL) {
       arhosekskymodelstate_free(sky_model_state_[i]);
     }
@@ -92,7 +92,7 @@ IrradianceSpectrum Hosek::GetSunIrradiance(Length altitude,
   MaybeInitSkyModelState(sun_zenith);
   IrradianceSpectrum result;
   for (unsigned int i = 0; i < result.size(); ++i) {
-    Wavelength lambda = result.GetWavelength(i);
+    Wavelength lambda = result.GetSample(i);
     if (lambda < 320.0 * nm || lambda > 720.0 * nm) {
       // arhosekskymodel_solar_radiance does not work for wavelengths outside
       // the 320-720nm range.
@@ -118,7 +118,7 @@ RadianceSpectrum Hosek::GetSkyRadiance(Length altitude, Angle sun_zenith,
       GetViewSunAngle(sun_zenith, view_zenith, view_sun_azimuth).to(rad);
   RadianceSpectrum result;
   for (unsigned int i = 0; i < result.size(); ++i) {
-    Wavelength lambda = result.GetWavelength(i);
+    Wavelength lambda = result.GetSample(i);
     result[i] = arhosekskymodel_radiance(sky_model_state_[i],
         view_zenith.to(rad), gamma, lambda.to(nm)) *
         SolarSpectrumCorrectionFactor(lambda) *
@@ -132,11 +132,11 @@ void Hosek::MaybeInitSkyModelState(Angle sun_zenith) const {
     return;
   }
   if (sky_model_state_[0] != NULL) {
-    for (unsigned int i = 0; i < spectrum::NUM_WAVELENGTH; ++i) {
+    for (unsigned int i = 0; i < DimensionlessSpectrum::SIZE; ++i) {
       arhosekskymodelstate_free(sky_model_state_[i]);
     }
   }
-  for (unsigned int i = 0; i < spectrum::NUM_WAVELENGTH; ++i) {
+  for (unsigned int i = 0; i < DimensionlessSpectrum::SIZE; ++i) {
     sky_model_state_[i] = arhosekskymodelstate_alloc_init(
         (pi / 2.0 - sun_zenith).to(rad), turbidity_, GroundAlbedo()[i]());
   }

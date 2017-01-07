@@ -36,12 +36,14 @@
 #include <memory>
 #include <sstream>
 
+#include "minpng.h"
 #include "physics/cie.h"
-#include "util/image.h"
 
 namespace {
 
-const std::string kOutputDirectory = "output/figures/";
+using dimensional::vec3;
+
+const char* kOutputDir = "output/figures/";
 
 const int kScaleColorMap[162] = {
   109,  90, 203, 126, 124, 217, 138, 148, 226, 148, 169, 232, 157, 187, 238,
@@ -155,6 +157,11 @@ Number GetColorErrorSquare(Color a, Color b) {
   return dot(ta - tb, ta - tb);
 }
 
+void WritePngArgb(const std::string& name, void* pixels, int width,
+    int height) {
+  write_png(name.c_str(), pixels, width, height);
+}
+
 }  // anonymous namespace
 
 Comparisons::Comparisons(const std::string& name, const Atmosphere& atmosphere,
@@ -227,7 +234,7 @@ void Comparisons::RenderSkyImage(const std::string& name, Angle sun_zenith,
   }
 
   std::string filename =
-      kOutputDirectory + "sky_image_" + name + "_" + name_ + ".png";
+      GetOutputDir() + "sky_image_" + name + "_" + name_ + ".png";
   WritePngArgb(filename, pixels.get(), width, height);
 }
 
@@ -235,7 +242,7 @@ void Comparisons::PlotSunIlluminanceAttenuation() const {
   const DimensionlessSpectrum& y_bar = cie_y_bar_function();
   Irradiance extra_terrestrial_illuminance = Integral(SolarSpectrum() * y_bar);
 
-  std::ofstream file(kOutputDirectory + "sun_illuminance_attenuation_" +
+  std::ofstream file(GetOutputDir() + "sun_illuminance_attenuation_" +
       name_ + ".txt");
   for (int i = 0; i <= 90; ++i) {
     Angle sun_zenith = i * deg;
@@ -252,12 +259,12 @@ void Comparisons::PlotRadiance(const std::string& name, Angle sun_zenith,
   RadianceSpectrum radiance = atmosphere_.GetSkyRadiance(
       0.0 * m, sun_zenith, sun_azimuth, view_zenith, view_azimuth);
   std::stringstream filename;
-  filename << kOutputDirectory << "radiance_" << name << "_"
+  filename << GetOutputDir() << "radiance_" << name << "_"
            << view_zenith.to(deg) << "_" << view_azimuth.to(deg) << "_" << name_
            << ".txt";
   std::ofstream file(filename.str());
   for (unsigned int i = 0; i < radiance.size(); ++i) {
-    file << radiance.GetWavelength(i).to(nm) << " "
+    file << radiance.GetSample(i).to(nm) << " "
          << radiance[i].to(watt_per_square_meter_per_sr_per_nm) << std::endl;
   }
   file.close();
@@ -289,10 +296,10 @@ void Comparisons::RenderLuminanceAndImage(const std::string& name,
         pixels1[i + j * width] = 0;
         pixels2[i + j * width] = 0;
         pixels3[i + j * width] = 0;
-        pixels4[i + j * width] = 0;
-        pixels5[i + j * width] = 0;
-        pixels6[i + j * width] = 0;
-        pixels7[i + j * width] = 0;
+        pixels4[i + j * width] = 0xFF << 24;
+        pixels5[i + j * width] = 0xFF << 24;
+        pixels6[i + j * width] = 0xFF << 24;
+        pixels7[i + j * width] = 0xFF << 24;
         continue;
       }
       Angle view_zenith = radius * pi / 2.0;
@@ -357,37 +364,37 @@ void Comparisons::RenderLuminanceAndImage(const std::string& name,
   DrawCrosses(sun_zenith, sun_azimuth, width, height, pixels7.get());
 
   std::string filename1 =
-      kOutputDirectory + "absolute_luminance_" + name + "_" + name_ + ".png";
+      GetOutputDir() + "absolute_luminance_" + name + "_" + name_ + ".png";
   WritePngArgb(filename1, pixels1.get(), width, height);
 
   std::string filename2 =
-      kOutputDirectory + "relative_luminance_" + name + "_" + name_ + ".png";
+      GetOutputDir() + "relative_luminance_" + name + "_" + name_ + ".png";
   WritePngArgb(filename2, pixels2.get(), width, height);
 
   std::string filename3 =
-      kOutputDirectory + "chromaticity_" + name + "_" + name_ + ".png";
+      GetOutputDir() + "chromaticity_" + name + "_" + name_ + ".png";
   WritePngArgb(filename3, pixels3.get(), width, height);
 
   std::string filename4 =
-      kOutputDirectory + "image_full_spectral_" + name + "_" + name_ + ".png";
+      GetOutputDir() + "image_full_spectral_" + name + "_" + name_ + ".png";
   WritePngArgb(filename4, pixels4.get(), width, height);
 
   std::string filename5 =
-      kOutputDirectory + "image_original_" + name + "_" + name_ + ".png";
+      GetOutputDir() + "image_original_" + name + "_" + name_ + ".png";
   WritePngArgb(filename5, pixels5.get(), width, height);
 
   std::string filename6 =
-      kOutputDirectory + "image_approx_spectral_" + name + "_" + name_ + ".png";
+      GetOutputDir() + "image_approx_spectral_" + name + "_" + name_ + ".png";
   WritePngArgb(filename6, pixels6.get(), width, height);
 
   std::string filename7 =
-      kOutputDirectory + "image_approx_diff_" + name + "_" + name_ + ".png";
+      GetOutputDir() + "image_approx_diff_" + name + "_" + name_ + ".png";
   WritePngArgb(filename7, pixels7.get(), width, height);
 
   double mean_square_error = sqrt(square_error_sum / count);
   double psnr = 10.0 * log(255 * 255 / mean_square_error) / log(10.0);
   std::ofstream psnr_stream(
-       kOutputDirectory + "image_approx_psnr_" + name + "_" + name_ + ".txt");
+       GetOutputDir() + "image_approx_psnr_" + name + "_" + name_ + ".txt");
   psnr_stream << round(psnr * 10.0) / 10.0 << std::endl;
   psnr_stream.close();
 }
@@ -395,7 +402,7 @@ void Comparisons::RenderLuminanceAndImage(const std::string& name,
 void Comparisons::PlotLuminanceProfile(const std::string& name,
     Angle sun_zenith, Angle sun_azimuth) const {
   std::string filename =
-      kOutputDirectory + "luminance_profile_" + name + "_" + name_ + ".txt";
+      GetOutputDir() + "luminance_profile_" + name + "_" + name_ + ".txt";
   std::ofstream file(filename);
   if (&atmosphere_ == &reference_) {
     for (int i = 0; i < 9; ++i) {
@@ -432,21 +439,21 @@ SpectralRadiance Comparisons::PlotRelativeError(const std::string& name,
   SpectralRadiance rmse = ComputeRelativeErrorAndRmse(sun_zenith, sun_azimuth,
       &relative_error, rmse_with_approximate_spectrum, &rgb_rmse,
       &original_rgb_rmse, &approximate_rgb_rmse);
-  std::ofstream file(kOutputDirectory + "error_" + name + "_" + name_ + ".txt");
+  std::ofstream file(GetOutputDir() + "error_" + name + "_" + name_ + ".txt");
   double rounded_rmse =
       round(rmse.to(1e-4 * watt_per_square_meter_per_sr_per_nm)) / 10.0;
   file << rounded_rmse << std::endl;
   file.close();
-  file.open(kOutputDirectory + "error_rgb_" + name + "_" + name_ + ".txt");
+  file.open(GetOutputDir() + "error_rgb_" + name + "_" + name_ + ".txt");
   rounded_rmse = round(rgb_rmse() * 10000.0) / 10.0;
   file << rounded_rmse << std::endl;
   file.close();
   file.open(
-      kOutputDirectory + "error_original_rgb_" + name + "_" + name_ + ".txt");
+      GetOutputDir() + "error_original_rgb_" + name + "_" + name_ + ".txt");
   rounded_rmse = round(original_rgb_rmse() * 10000.0) / 10.0;
   file << rounded_rmse << std::endl;
   file.close();
-  file.open(kOutputDirectory + "error_approximate_rgb_" + name + "_" + name_ +
+  file.open(GetOutputDir() + "error_approximate_rgb_" + name + "_" + name_ +
       ".txt");
   rounded_rmse = round(approximate_rgb_rmse() * 10000.0) / 10.0;
   file << rounded_rmse << std::endl;
@@ -474,7 +481,7 @@ SpectralRadiance Comparisons::PlotRelativeError(const std::string& name,
   }
   DrawCrosses(sun_zenith, sun_azimuth, width, height, pixels.get());
   std::string filename =
-      kOutputDirectory + "relative_error_" + name + "_" + name_ + ".png";
+      GetOutputDir() + "relative_error_" + name + "_" + name_ + ".png";
   WritePngArgb(filename, pixels.get(), width, height);
   return rmse;
 }
@@ -508,8 +515,8 @@ void Comparisons::PlotRelativeError(const std::string& name,
           Integral(reference_spectrum, min_wavelength_, max_wavelength_);
       Number relative_error = (model - ref) / ref;
       for (unsigned int k = 0; k < model_spectrum.size(); ++k) {
-        if (model_spectrum.GetWavelength(k) >= min_wavelength_ &&
-            model_spectrum.GetWavelength(k) <= max_wavelength_) {
+        if (model_spectrum.GetSample(k) >= min_wavelength_ &&
+            model_spectrum.GetSample(k) <= max_wavelength_) {
           count += 1;
           error_square_sum += (model_spectrum[k] - reference_spectrum[k]) *
               (model_spectrum[k] - reference_spectrum[k]);
@@ -522,13 +529,13 @@ void Comparisons::PlotRelativeError(const std::string& name,
   }
   DrawCrosses(sun_zenith, sun_azimuth, width, height, pixels.get());
   std::string filename =
-      kOutputDirectory + "relative_error_" + name + "_" + name_ + ".png";
+      GetOutputDir() + "relative_error_" + name + "_" + name_ + ".png";
   WritePngArgb(filename, pixels.get(), width, height);
 
   SpectralRadiance rmse = sqrt(error_square_sum / count);
   double rounded_rmse =
       round(rmse.to(1e-4 * watt_per_square_meter_per_sr_per_nm)) / 10.0;
-  std::ofstream file(kOutputDirectory + "error_" + name + "_" + name_ + ".txt");
+  std::ofstream file(GetOutputDir() + "error_" + name + "_" + name_ + ".txt");
   file << rounded_rmse << std::endl;
   file.close();
 }
@@ -570,7 +577,7 @@ void Comparisons::PlotDayZenithLuminance(
     const std::vector<Angle>& sun_zenith,
     const std::vector<Luminance>& zenith_luminance) const {
   std::ofstream file(
-      kOutputDirectory + "day_zenith_luminance_" + name_ + ".txt");
+      GetOutputDir() + "day_zenith_luminance_" + name_ + ".txt");
   for (unsigned int i = 0; i < sun_zenith.size(); ++i) {
     file << i << " " << zenith_luminance[i].to(cd_per_square_meter)
          << std::endl;
@@ -582,7 +589,7 @@ void Comparisons::PlotDayIrradiance(
     const std::vector<Angle>& sun_zenith,
     const std::vector<Irradiance>& sun,
     const std::vector<Irradiance>& sky) const {
-  std::ofstream file(kOutputDirectory + "day_irradiance_" + name_ + ".txt");
+  std::ofstream file(GetOutputDir() + "day_irradiance_" + name_ + ".txt");
   for (unsigned int i = 0; i < sun_zenith.size(); ++i) {
     file << i << " "
          << (sun[i] + sky[i]).to(watt_per_square_meter) << " "
@@ -591,39 +598,39 @@ void Comparisons::PlotDayIrradiance(
   file.close();
 }
 
-const std::string& Comparisons::GetOutputDirectory() {
-  return kOutputDirectory;
+const std::string Comparisons::GetOutputDir() {
+  return kOutputDir;
 }
 
 std::string Comparisons::SaveGroundAlbedo() {
-  std::ofstream albedo(kOutputDirectory + "ground_albedo.txt");
+  std::ofstream albedo(GetOutputDir() + "ground_albedo.txt");
   const DimensionlessSpectrum& ground_albedo = GroundAlbedo();
   for (unsigned int i = 0; i < ground_albedo.size(); ++i) {
-    albedo << ground_albedo.GetWavelength(i).to(nm) << " "
+    albedo << ground_albedo.GetSample(i).to(nm) << " "
            << ground_albedo[i]() << std::endl;
   }
   return "reset\n"
       "set terminal postscript eps size 8.5cm,5.0cm\n"
-      "set output \"" + kOutputDirectory + "ground_albedo.eps\"\n"
+      "set output \"" + GetOutputDir() + "ground_albedo.eps\"\n"
       "set xlabel \"Wavelength (nm)\"\n"
       "set ylabel \"Albedo\"\n"
       "set xtics nomirror\n"
       "set ytics nomirror\n"
       "set grid noxtics ytics\n"
       "unset key\n"
-      "plot [360:720][0:] \"" + kOutputDirectory +
+      "plot [360:720][0:] \"" + GetOutputDir() +
           "ground_albedo.txt\" with lines\n";
 }
 
 std::string Comparisons::SaveErrorCaption() {
-  std::ofstream palette(kOutputDirectory + "error_palette.txt");
+  std::ofstream palette(GetOutputDir() + "error_palette.txt");
   for (int i = 0; i < 41; ++i) {
     palette << kErrorColorMap[3 * i] << " " << kErrorColorMap[3 * i + 1]
             << " " << kErrorColorMap[3 * i + 2] << std::endl;
   }
   palette.close();
 
-  std::ofstream caption(kOutputDirectory + "error_caption.txt");
+  std::ofstream caption(GetOutputDir() + "error_caption.txt");
   for (int j = 0; j < 2; ++j) {
     for (int i = 0; i < 41; ++i) {
       caption << i << " ";
@@ -634,23 +641,23 @@ std::string Comparisons::SaveErrorCaption() {
 
   return "reset\n"
       "set terminal postscript eps size 15cm,1.2cm enhanced\n"
-      "set output \"" + kOutputDirectory + "error_caption.eps\"\n"
+      "set output \"" + GetOutputDir() + "error_caption.eps\"\n"
       "set xtics border out nomirror\n"
       "set xtics (\"-200\" -0.5, \"-150\" 4.5, \"-100\" 9.5, "
       "\"-50\" 14.5, \"0\" 19.5, \"50\" 24.5, \"100\" 29.5, \"150\" 34.5, "
       "\"200\" 39.5)\n"
       "unset ytics\n"
       "set palette model RGB "
-      "file \"" + kOutputDirectory + "error_palette.txt\" "
+      "file \"" + GetOutputDir() + "error_palette.txt\" "
       "using ($1/255):($2/255):($3/255)\n"
       "unset key\n"
       "unset title\n"
       "unset colorbox\n"
-      "plot \"" + kOutputDirectory + "error_caption.txt\" matrix with image";
+      "plot \"" + GetOutputDir() + "error_caption.txt\" matrix with image";
 }
 
 std::string Comparisons::SaveScaleCaption() {
-  std::ofstream palette(kOutputDirectory + "scale_palette.txt");
+  std::ofstream palette(GetOutputDir() + "scale_palette.txt");
   for (int i = -12; i < 6 * 64 + 12; ++i) {
     int red, green, blue;
     GetScaleColor(pow(10.0, i / 64.0), &red, &green, &blue);
@@ -658,7 +665,7 @@ std::string Comparisons::SaveScaleCaption() {
   }
   palette.close();
 
-  std::ofstream caption(kOutputDirectory + "scale_caption.txt");
+  std::ofstream caption(GetOutputDir() + "scale_caption.txt");
   for (int j = 0; j < 2; ++j) {
     for (int i = 0; i < 6 * 64 + 24; ++i) {
       caption << i << " ";
@@ -669,25 +676,25 @@ std::string Comparisons::SaveScaleCaption() {
 
   return "reset\n"
       "set terminal postscript eps size 15cm,1.2cm enhanced\n"
-      "set output \"" + kOutputDirectory + "scale_caption.eps\"\n"
+      "set output \"" + GetOutputDir() + "scale_caption.eps\"\n"
       "set xtics (\"1\" 13, \"10\" 77, \"10^2\" 140, \"10^3\" 204, "
       "\"10^4\" 268, \"10^5\" 331, \"10^6\" 395)\n"
       "set xtics border out nomirror\n"
       "unset ytics\n"
       "set palette model RGB "
-      "file \"" + kOutputDirectory + "scale_palette.txt\" "
+      "file \"" + GetOutputDir() + "scale_palette.txt\" "
       "using ($1/255):($2/255):($3/255)\n"
       "unset key\n"
       "unset title\n"
       "unset colorbox\n"
-      "plot \"" + kOutputDirectory + "scale_caption.txt\" matrix with image";
+      "plot \"" + GetOutputDir() + "scale_caption.txt\" matrix with image";
 }
 
 Color Comparisons::GetOriginalColor(const RadianceSpectrum& radiance) const {
   if (atmosphere_.GetOriginalNumberOfWavelengths() == 3) {
     return GetSrgbColorNaive(radiance);
   } else if (atmosphere_.GetOriginalNumberOfWavelengths() ==
-             spectrum::NUM_WAVELENGTH) {
+             DimensionlessSpectrum::SIZE) {
     return GetSrgbColor(radiance);
   } else {
     return GetSrgbColor(radiance, min_wavelength_, max_wavelength_,
@@ -724,8 +731,8 @@ SpectralRadiance Comparisons::ComputeRelativeErrorAndRmse(Angle sun_zenith,
       Radiance measured =
           Integral(measured_spectrum, min_wavelength_, max_wavelength_);
       for (unsigned int k = 0; k < model_spectrum.size(); ++k) {
-        if (model_spectrum.GetWavelength(k) >= min_wavelength_ &&
-            model_spectrum.GetWavelength(k) <= max_wavelength_) {
+        if (model_spectrum.GetSample(k) >= min_wavelength_ &&
+            model_spectrum.GetSample(k) <= max_wavelength_) {
           count += 1;
           error_square_sum += (model_spectrum[k] - measured_spectrum[k]) *
               (model_spectrum[k] - measured_spectrum[k]);

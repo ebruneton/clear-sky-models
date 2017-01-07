@@ -33,11 +33,10 @@
 #include <string>
 
 #include "atmosphere/atmosphere.h"
+#include "atmosphere/hemispherical_function.h"
 #include "atmosphere/measurement/measured_atmospheres.h"
 #include "math/angle.h"
 #include "math/binary_function.h"
-#include "math/hemispherical_function.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 class LibRadtran : public Atmosphere {
@@ -75,7 +74,7 @@ class LibRadtran : public Atmosphere {
   CacheType cache_type_;
   mutable Angle current_sun_zenith_;
   mutable Angle current_sun_azimuth_;
-  mutable BinaryFunction<kNumTheta, kNumPhi / 2, RadianceSpectrum>
+  mutable dimensional::BinaryFunction<kNumTheta, kNumPhi / 2, RadianceSpectrum>
       binary_function_cache_;
   mutable HemisphericalFunction<RadianceSpectrum> hemispherical_function_cache_;
 };

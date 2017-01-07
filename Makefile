@@ -29,18 +29,24 @@
 GPP = g++
 GPP_FLAGS = -Wall -Wmain -pedantic -pedantic-errors -std=c++11
 
+INCLUDE_FLAGS = -I. -Iexternal/dimensional_types -Iexternal/minpng
+
 DEBUG_FLAGS = -g
 RELEASE_FLAGS = -DNDEBUG -O3 -fexpensive-optimizations
 
-HEADERS := $(shell find . -name "*.h")
-SOURCES := $(shell find . -name "*.cc" -not -name "*test*" -not -name "main.cc")
-TEST_SOURCES := $(shell find . -name "*test*.cc")
+DIRS := atmosphere physics
+
+HEADERS := $(shell find $(DIRS) -name "*.h")
+SOURCES := $(shell find $(DIRS) -name "*.cc" \
+    -not -name "*test*" -not -name "main.cc")
+TEST_SOURCES := $(shell find $(DIRS) -name "*test*.cc")
 ALL_SOURCES := $(HEADERS) $(SOURCES) $(TEST_SOURCES) main.cc
-LINT_SOURCES := $(filter-out ./atmosphere/model/hosek/ArHosek%,$(ALL_SOURCES))
+LINT_SOURCES := $(filter-out atmosphere/model/hosek/ArHosek%,$(ALL_SOURCES))
 
 DEBUG_OBJECTS := $(SOURCES:%.cc=output/Debug/%.o)
 RELEASE_OBJECTS := $(SOURCES:%.cc=output/Release/%.o)
-TEST_OBJECTS := $(TEST_SOURCES:%.cc=output/Debug/%.o)
+TEST_OBJECTS := $(TEST_SOURCES:%.cc=output/Debug/%.o) \
+    output/Debug/external/dimensional_types/test/test_main.o
 
 ARCHIVE_URL := \
     http://www.graphics.cornell.edu/resources/clearsky/data/2013-05-27/RADIANCE
@@ -57,16 +63,18 @@ ARCHIVES := \
 
 INPUTS := $(ARCHIVES:%.7z=input/%)
 
-.DEFAULT = all
-.PHONY = lint all test clean
+input/%:
+	wget -O input/$*.7z $(ARCHIVE_URL)/$*.7z
+	7zr x -oinput input/$*.7z
+	rm input/$*.7z
 
 output/Debug/%.o: %.cc
 	mkdir -p $(@D)
-	$(GPP) $(GPP_FLAGS) $(DEBUG_FLAGS) -I. -c $< -o $@
+	$(GPP) $(GPP_FLAGS) $(DEBUG_FLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 output/Release/%.o: %.cc
 	mkdir -p $(@D)
-	$(GPP) $(GPP_FLAGS) $(RELEASE_FLAGS) -I. -c $< -o $@
+	$(GPP) $(GPP_FLAGS) $(RELEASE_FLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 output/Debug/clearskymodels: $(DEBUG_OBJECTS) output/Debug/main.o
 	mkdir -p $(@D)
@@ -78,16 +86,11 @@ output/Release/clearskymodels: $(RELEASE_OBJECTS) output/Release/main.o
 
 output/Debug/clearskymodels_test: $(DEBUG_OBJECTS) $(TEST_OBJECTS)
 	mkdir -p $(@D)
-	echo $(TEST_OBJECTS)
 	$(GPP) -pthread -s -o $@ $^
 
+# cpplint can be installed with "pip install cpplint".
 lint: $(LINT_SOURCES)
-	./cpplint.py --root=$(PWD) $^
-
-input/%:
-	wget -O input/$*.7z $(ARCHIVE_URL)/$*.7z
-	7zr x -oinput input/$*.7z
-	rm input/$*.7z
+	cpplint --root=$(PWD) $^
 
 all: output/Debug/clearskymodels output/Release/clearskymodels $(INPUTS)
 	mkdir -p output/cache/bruneton

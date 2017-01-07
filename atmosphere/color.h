@@ -31,7 +31,7 @@
 #define ATMOSPHERE_COLOR_H_
 
 #include "physics/cie.h"
-#include "physics/spectrum.h"
+#include "physics/units.h"
 
 // Converts the given spectrum to a RGB color using the "naive", and incorrect,
 // method from the Nishita93, Nishita96, O'Neal and Bruneton models, i.e. by

@@ -31,7 +31,6 @@
 #define ATMOSPHERE_ATMOSPHERE_H_
 
 #include "math/angle.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 constexpr Length EarthRadius = 6360.0 * km;

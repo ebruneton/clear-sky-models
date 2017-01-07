@@ -33,7 +33,6 @@
 #include "atmosphere/atmosphere.h"
 #include "math/angle.h"
 #include "math/binary_function.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 class Nishita93 : public Atmosphere {
@@ -74,12 +73,15 @@ class Nishita93 : public Atmosphere {
 
   // Optical lengths between a point of the intersection circle between a sphere
   // and a cylinder, and the Sun. The cylinder axis being the Sun direction.
-  BinaryFunction<kNumSphere, kNumCylinder, Length> rayleigh_optical_length_;
-  BinaryFunction<kNumSphere, kNumCylinder, Length> mie_optical_length_;
+  dimensional::BinaryFunction<kNumSphere, kNumCylinder, Length>
+      rayleigh_optical_length_;
+  dimensional::BinaryFunction<kNumSphere, kNumCylinder, Length>
+      mie_optical_length_;
   // Same, with the Sun in the opposite direction of the cylinder axis.
-  BinaryFunction<kNumSphere, kNumCylinder, Length>
+  dimensional::BinaryFunction<kNumSphere, kNumCylinder, Length>
       rayleigh_opposite_optical_length_;
-  BinaryFunction<kNumSphere, kNumCylinder, Length> mie_opposite_optical_length_;
+  dimensional::BinaryFunction<kNumSphere, kNumCylinder, Length>
+      mie_opposite_optical_length_;
 };
 
 #endif  // ATMOSPHERE_MODEL_NISHITA_NISHITA93_H_

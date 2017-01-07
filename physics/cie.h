@@ -32,9 +32,9 @@
 
 #include "math/matrix.h"
 #include "math/vector.h"
-#include "physics/spectrum.h"
+#include "physics/units.h"
 
-typedef Vector3<Luminance> Color;
+typedef dimensional::Vector3<Luminance> Color;
 
 // The conversion factor between watts and lumens.
 constexpr auto MaxLuminousEfficacy = 683.0 * lm / watt;
@@ -46,7 +46,7 @@ const DimensionlessSpectrum& cie_y_bar_function();
 const DimensionlessSpectrum& cie_z_bar_function();
 
 // The conversion matrix from XYZ to linear sRGB color spaces.
-constexpr Matrix3<Number> XYZ_to_sRGB(
+constexpr dimensional::Matrix3<Number> XYZ_to_sRGB(
     +3.2404542, -1.5371385, -0.4985314,
     -0.9692660, +1.8760108, +0.0415560,
     +0.0556434, -0.2040259, +1.0572252);

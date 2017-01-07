@@ -45,9 +45,9 @@
 
 #include "math/vector.h"
 
-typedef Vector3<Length> Position;
-typedef Vector3<Length> Vector;
-typedef Vector3<Number> Direction;
+typedef dimensional::Vector3<Length> Position;
+typedef dimensional::Vector3<Length> Vector;
+typedef dimensional::Vector3<Number> Direction;
 
 namespace {
 
@@ -121,8 +121,8 @@ RadianceSpectrum ONeal::GetSkyRadiance(Length altitude, Angle sun_zenith,
   Position v3_sample_point = v3_start + v3_sample_ray * Number(0.5);
 
   // Now loop through the sample rays.
-  WavelengthFunction<Length> front_color(0.0 * m);
-  WavelengthFunction<Length> front_secondary_color(0.0 * m);
+  WavelengthFunction<1, 0, 0, 0, 0> front_color(0.0 * m);
+  WavelengthFunction<1, 0, 0, 0, 0> front_secondary_color(0.0 * m);
   for (int i = 0; i < kNumSamples; ++i) {
     f_height = length(v3_sample_point);
     f_rayleigh_depth = exp((f_inner_radius - f_height) / RayleighScaleHeight);

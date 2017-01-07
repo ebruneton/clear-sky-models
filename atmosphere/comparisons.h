@@ -35,9 +35,9 @@
 
 #include "atmosphere/atmosphere.h"
 #include "atmosphere/color.h"
+#include "atmosphere/hemispherical_function.h"
 #include "atmosphere/measurement/measured_atmospheres.h"
 #include "math/angle.h"
-#include "math/hemispherical_function.h"
 #include "physics/units.h"
 
 class Comparisons {
@@ -82,7 +82,7 @@ class Comparisons {
       const std::vector<Irradiance>& sun,
       const std::vector<Irradiance>& sky) const;
 
-  static const std::string& GetOutputDirectory();
+  static const std::string GetOutputDir();
   static std::string SaveGroundAlbedo();
   static std::string SaveErrorCaption();
   static std::string SaveScaleCaption();

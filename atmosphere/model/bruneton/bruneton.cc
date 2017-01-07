@@ -63,9 +63,9 @@ Bruneton::Bruneton(ScatteringType scattering_type,
   }
 
   if (scattering_type == DOUBLE_SCATTERING_ONLY) {
-    inscatter1R_sampler_ = IrradianceTexture(
+    inscatter1R_sampler_.Set(
         IrradianceSpectrum(0.0 * watt_per_square_meter_per_nm));
-    inscatter1M_sampler_ = IrradianceTexture(
+    inscatter1M_sampler_.Set(
         IrradianceSpectrum(0.0 * watt_per_square_meter_per_nm));
   } else {
     name = cache_directory + "inscatter1R.dat";
@@ -84,7 +84,7 @@ Bruneton::Bruneton(ScatteringType scattering_type,
   }
 
   if (scattering_type == SINGLE_SCATTERING_ONLY) {
-    inscatterN_sum_sampler_ = RadianceTexture(
+    inscatterN_sum_sampler_.Set(
         RadianceSpectrum(0.0 * watt_per_square_meter_per_sr_per_nm));
     name = cache_directory + "irradiance2.dat";
     f.open(name);
@@ -180,8 +180,8 @@ Bruneton::Bruneton(ScatteringType scattering_type,
     }
 
     if (first_iteration) {
-      sky_irradiance_sum_sampler_ = sky_irradiance_sampler;
-      inscatterN_sum_sampler_ = inscatterN_sampler;
+      sky_irradiance_sum_sampler_.Set(sky_irradiance_sampler);
+      inscatterN_sum_sampler_.Set(inscatterN_sampler);
     } else {
       sky_irradiance_sum_sampler_ += sky_irradiance_sampler;
       inscatterN_sum_sampler_ += inscatterN_sampler;

@@ -27,8 +27,8 @@
  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef MATH_HEMISPHERICAL_FUNCTION_H_
-#define MATH_HEMISPHERICAL_FUNCTION_H_
+#ifndef ATMOSPHERE_HEMISPHERICAL_FUNCTION_H_
+#define ATMOSPHERE_HEMISPHERICAL_FUNCTION_H_
 
 #include <algorithm>
 #include <cassert>
@@ -37,7 +37,7 @@
 #include <iostream>
 #include <string>
 
-#include "math/angle.h"
+#include "physics/units.h"
 
 // A function from the hemisphere to values of type T represented by its values
 // at 9x9 sample points mapped from the unit square to the hemisphere (using
@@ -108,19 +108,19 @@ class HemisphericalFunction {
     if (a > -b) {
       if (a > b) {
         *r = a;
-        *phi = (PI / 4) * (b / a);
+        *phi = (dimensional::PI / 4) * (b / a);
       } else {
         *r = b;
-        *phi = (PI / 4) * (2 - (a / b));
+        *phi = (dimensional::PI / 4) * (2 - (a / b));
       }
     } else {
       if (a < b) {
         *r = -a;
-        *phi = (PI / 4) * (4 + (b / a));
+        *phi = (dimensional::PI / 4) * (4 + (b / a));
       } else {
         *r = -b;
         if (b != 0.0) {
-          *phi = (PI / 4) * (6 - (a / b));
+          *phi = (dimensional::PI / 4) * (6 - (a / b));
         } else {
           *phi = 0;
         }
@@ -149,7 +149,7 @@ class HemisphericalFunction {
           GetRing(ring_index - 1, view_azimuth) * 3.0;
     } else {
       // Normal case: cubic interpolation of the nearest samples along the ring.
-      double u = view_azimuth.to(pi) * (4 * ring_index);
+      double u = view_azimuth.to(dimensional::pi) * (4 * ring_index);
       int i = std::floor(u);
       u -= i;
       return Cubic(u, GetRing(ring_index, i - 1), GetRing(ring_index, i),
@@ -210,4 +210,4 @@ class HemisphericalFunction {
   T value_[9][9];
 };
 
-#endif  // MATH_HEMISPHERICAL_FUNCTION_H_
+#endif  // ATMOSPHERE_HEMISPHERICAL_FUNCTION_H_

@@ -33,9 +33,8 @@
 #include <string>
 
 #include "atmosphere/atmosphere.h"
+#include "atmosphere/hemispherical_function.h"
 #include "math/angle.h"
-#include "math/hemispherical_function.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 class MeasuredAtmosphere : public Atmosphere {

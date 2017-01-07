@@ -33,6 +33,8 @@
 
 #include "atmosphere/atmosphere.h"
 
+using dimensional::vec2;
+using dimensional::vec3;
 using std::max;
 using std::min;
 

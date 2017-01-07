@@ -27,13 +27,13 @@
  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "math/hemispherical_function.h"
+#include "atmosphere/hemispherical_function.h"
 
 #include <string>
 
 #include "test/test_case.h"
 
-class TestHemisphericalFunction : public TestCase {
+class TestHemisphericalFunction : public dimensional::TestCase {
  public:
   template<typename T>
   TestHemisphericalFunction(const std::string& name, T test)
@@ -112,11 +112,11 @@ class TestHemisphericalFunction : public TestCase {
         f.Set(i, j, i * 10 + j);
       }
     }
-    f.Save("output/Debug/math/hemispherical_fuction_test.dat");
+    f.Save("/tmp/clear_sky_models_atmosphere_hemispherical_fuction_test.dat");
 
     f = HemisphericalFunction<double>();
 
-    f.Load("output/Debug/math/hemispherical_fuction_test.dat");
+    f.Load("/tmp/clear_sky_models_atmosphere_hemispherical_fuction_test.dat");
     for (int i = 0; i < 9; ++i) {
       for (int j = 0; j < 9; ++j) {
         ExpectEquals(i * 10 + j, f.Get(i, j));

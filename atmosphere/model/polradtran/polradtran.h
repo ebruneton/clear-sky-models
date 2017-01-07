@@ -35,7 +35,6 @@
 #include "atmosphere/atmosphere.h"
 #include "math/angle.h"
 #include "math/binary_function.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 // WARNING: this model does not use the common atmospheric parameters used in
@@ -64,7 +63,8 @@ class PolRadtran : public Atmosphere {
   std::string libradtran_data_;
   bool polarization_;
   mutable Angle current_sun_zenith_;
-  mutable BinaryFunction<kNumTheta, kNumPhi / 2, RadianceSpectrum> sky_dome_;
+  mutable dimensional::BinaryFunction<kNumTheta, kNumPhi / 2, RadianceSpectrum>
+      sky_dome_;
 };
 
 #endif  // ATMOSPHERE_MODEL_POLRADTRAN_POLRADTRAN_H_

@@ -37,7 +37,7 @@
 #include "math/scalar.h"
 #include "math/ternary_function.h"
 #include "math/vector.h"
-#include "physics/spectrum.h"
+#include "physics/units.h"
 
 Length Limit(Length r, Number mu);
 
@@ -47,11 +47,12 @@ Length Limit(Length r, Number mu);
 const unsigned int TRANSMITTANCE_W = 256;
 const unsigned int TRANSMITTANCE_H = 64;
 
-typedef BinaryFunction<TRANSMITTANCE_W, TRANSMITTANCE_H, DimensionlessSpectrum>
-    TransmittanceTexture;
+typedef dimensional::BinaryFunction<
+    TRANSMITTANCE_W, TRANSMITTANCE_H, DimensionlessSpectrum>
+        TransmittanceTexture;
 
-void GetTransmittanceRMu(vec2 xy, Length& r, Number& muS);
-vec2 GetTransmittanceUV(Length r, Number mu);
+void GetTransmittanceRMu(dimensional::vec2 xy, Length& r, Number& muS);
+dimensional::vec2 GetTransmittanceUV(Length r, Number mu);
 
 DimensionlessSpectrum GetTransmittance(
     const TransmittanceTexture& transmittance_sampler, Length r, Number mu);
@@ -66,11 +67,12 @@ DimensionlessSpectrum GetTransmittance(
 const unsigned int IRRADIANCE_W = 64;
 const unsigned int IRRADIANCE_H = 16;
 
-typedef BinaryFunction<IRRADIANCE_W, IRRADIANCE_H, IrradianceSpectrum>
-    SkyIrradianceTexture;
+typedef dimensional::BinaryFunction<
+    IRRADIANCE_W, IRRADIANCE_H, IrradianceSpectrum>
+        SkyIrradianceTexture;
 
-void GetSkyIrradianceRMuS(vec2 xy, Length& r, Number& muS);
-vec2 GetSkyIrradianceUV(Length r, Number muS);
+void GetSkyIrradianceRMuS(dimensional::vec2 xy, Length& r, Number& muS);
+dimensional::vec2 GetSkyIrradianceUV(Length r, Number muS);
 
 IrradianceSpectrum GetSkyIrradiance(
     const SkyIrradianceTexture& sky_irradiance_sampler, Length r, Number muS);
@@ -83,40 +85,43 @@ const unsigned int RES_MU = 128;
 const unsigned int RES_MU_S = 32;
 const unsigned int RES_NU = 8;
 
-typedef Scalar<-3, -1, -1, 1, 0> SpectralRadianceDensity;
+typedef dimensional::Scalar<-3, -1, -1, 1, 0> SpectralRadianceDensity;
 
-typedef WavelengthFunction<SpectralRadianceDensity> RadianceDensitySpectrum;
+typedef WavelengthFunction<-3, -1, -1, 1, 0> RadianceDensitySpectrum;
 
-typedef TernaryFunction<RES_MU_S * RES_NU, RES_MU, RES_R, IrradianceSpectrum>
-    IrradianceTexture;
+typedef dimensional::TernaryFunction<
+    RES_MU_S * RES_NU, RES_MU, RES_R, IrradianceSpectrum>
+        IrradianceTexture;
 
-typedef TernaryFunction<RES_MU_S * RES_NU, RES_MU, RES_R, RadianceSpectrum>
-    RadianceTexture;
+typedef dimensional::TernaryFunction<
+    RES_MU_S * RES_NU, RES_MU, RES_R, RadianceSpectrum>
+        RadianceTexture;
 
-typedef TernaryFunction<RES_MU_S * RES_NU, RES_MU, RES_R,
-    RadianceDensitySpectrum> RadianceDensityTexture;
+typedef dimensional::TernaryFunction<
+    RES_MU_S * RES_NU, RES_MU, RES_R, RadianceDensitySpectrum>
+        RadianceDensityTexture;
 
 void SetLayer(int layer, Length& r, Length& dmin, Length& dmax, Length& dminp,
     Length& dmaxp);
 
-void GetMuMuSNu(vec2 xy, Length r, Length dmin, Length dmax, Length dminp,
-    Length dmaxp, Number& mu, Number& muS, Number& nu);
+void GetMuMuSNu(dimensional::vec2 xy, Length r, Length dmin, Length dmax,
+    Length dminp, Length dmaxp, Number& mu, Number& muS, Number& nu);
 
 // PRECOMPUTATIONS -------------------------------------------------------------
 
-DimensionlessSpectrum ComputeTransmittance(vec2 xy);
+DimensionlessSpectrum ComputeTransmittance(dimensional::vec2 xy);
 
 void ComputeTransmittance(TransmittanceTexture* transmittance_sampler);
 
 IrradianceSpectrum ComputeSkyIrradiance1(
-    const TransmittanceTexture& transmittance_sampler, vec2 xy);
+    const TransmittanceTexture& transmittance_sampler, dimensional::vec2 xy);
 
 void ComputeSkyIrradiance1(const TransmittanceTexture& transmittance_sampler,
     SkyIrradianceTexture* sky_irradiance);
 
 void ComputeInscatter1(
     const TransmittanceTexture& transmittance_sampler, Length r, Length dmin,
-    Length dmax, Length dminp, Length dmaxp, vec2 xy,
+    Length dmax, Length dminp, Length dmaxp, dimensional::vec2 xy,
     IrradianceSpectrum& rayleigh, IrradianceSpectrum& mie);
 
 void ComputeInscatter1(const TransmittanceTexture& transmittance_sampler,
@@ -128,8 +133,9 @@ void ComputeInscatterS(
     const SkyIrradianceTexture& sky_irradiance_texture,
     const IrradianceTexture& rayleigh_sampler,
     const IrradianceTexture& mie_sampler, const RadianceTexture& raymie_sampler,
-    Length r, Length dmin, Length dmax, Length dminp, Length dmaxp, vec2 xy,
-    bool first_iteration, RadianceDensitySpectrum& raymie);
+    Length r, Length dmin, Length dmax, Length dminp, Length dmaxp,
+    dimensional::vec2 xy, bool first_iteration,
+    RadianceDensitySpectrum& raymie);
 
 void ComputeInscatterS(const TransmittanceTexture& transmittance_sampler,
     const SkyIrradianceTexture& sky_irradiance_texture,
@@ -140,7 +146,7 @@ void ComputeInscatterS(const TransmittanceTexture& transmittance_sampler,
 IrradianceSpectrum ComputeSkyIrradianceN(
     const IrradianceTexture& rayleigh_sampler,
     const IrradianceTexture& mie_sampler, const RadianceTexture& raymie_sampler,
-    vec2 xy, bool first_iteration);
+    dimensional::vec2 xy, bool first_iteration);
 
 void ComputeSkyIrradianceN(const IrradianceTexture& rayleigh_sampler,
     const IrradianceTexture& mie_sampler, const RadianceTexture& raymie_sampler,
@@ -149,8 +155,8 @@ void ComputeSkyIrradianceN(const IrradianceTexture& rayleigh_sampler,
 void ComputeInscatterN(
     const TransmittanceTexture& transmittance_sampler,
     const RadianceDensityTexture& radiance_density_sampler,
-    Length r, Length dmin, Length dmax, Length dminp, Length dmaxp, vec2 xy,
-    RadianceSpectrum& raymie);
+    Length r, Length dmin, Length dmax, Length dminp, Length dmaxp,
+    dimensional::vec2 xy, RadianceSpectrum& raymie);
 
 void ComputeInscatterN(const TransmittanceTexture& transmittance_sampler,
     const RadianceDensityTexture& radiance_density_sampler,
@@ -159,12 +165,13 @@ void ComputeInscatterN(const TransmittanceTexture& transmittance_sampler,
 // TEXTURE FETCH ---------------------------------------------------------------
 
 template<unsigned int NX, unsigned int NY, typename T>
-T texture2d(const BinaryFunction<NX, NY, T>& table, const vec2& uv) {
+T texture2d(const dimensional::BinaryFunction<NX, NY, T>& table,
+    const dimensional::vec2& uv) {
   return table(uv.x(), uv.y());
 }
 
 template<unsigned int NX, unsigned int NY, unsigned int NZ, typename T>
-T texture4d(const TernaryFunction<NX, NY, NZ, T>& table,
+T texture4d(const dimensional::TernaryFunction<NX, NY, NZ, T>& table,
     Length r, Number mu, Number muS, Number nu) {
   const Length H =
       sqrt(AtmosphereRadius * AtmosphereRadius - EarthRadius * EarthRadius);

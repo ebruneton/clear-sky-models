@@ -35,7 +35,6 @@
 #include "math/angle.h"
 #include "math/ternary_function.h"
 #include "math/vector.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 class Nishita96 : public Nishita93 {
@@ -52,20 +51,20 @@ class Nishita96 : public Nishita93 {
  private:
   static constexpr int kNumSteps = 33;
 
-  typedef TernaryFunction<kNumSteps, kNumSteps, kNumSteps,
-      WavelengthFunction<InverseSolidAngle>> SingleScatteringFunction;
-  typedef Vector3<Length> Position;
-  typedef Vector3<Number> Direction;
+  typedef dimensional::TernaryFunction<kNumSteps, kNumSteps, kNumSteps,
+      WavelengthFunction<0, 0, -1, 0, 0>> SingleScatteringFunction;
+  typedef dimensional::Vector3<Length> Position;
+  typedef dimensional::Vector3<Number> Direction;
 
   class SingleScatteringTable {
    public:
     void Init(Angle sun_zenith, Angle view_zenith);
 
-    WavelengthFunction<InverseSolidAngle> GetSingleScattering(
+    WavelengthFunction<0, 0, -1, 0, 0> GetSingleScattering(
         const Position& p) const;
 
-    void GetPosition(const vec3& u, Position* p) const;
-    void GetU(const Position& p, vec3* u) const;
+    void GetPosition(const dimensional::vec3& u, Position* p) const;
+    void GetU(const Position& p, dimensional::vec3* u) const;
 
     Angle view_zenith_;
     Number cos_view_zenith_;
@@ -103,7 +102,7 @@ class Nishita96 : public Nishita93 {
 
   ScatteringType scattering_type_;
   mutable Angle current_sun_zenith_;
-  mutable Vector3<Number> sample_directions_[8];
+  mutable dimensional::Vector3<Number> sample_directions_[8];
   mutable SingleScatteringTable sample_single_scattering_[8];
 };
 

@@ -32,7 +32,6 @@
 
 #include "atmosphere/atmosphere.h"
 #include "math/angle.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 struct ArHosekSkyModelState;
@@ -55,7 +54,7 @@ class Hosek : public Atmosphere {
 
   double turbidity_;
   mutable Angle current_sun_zenith_;
-  mutable ArHosekSkyModelState* sky_model_state_[spectrum::NUM_WAVELENGTH];
+  mutable ArHosekSkyModelState* sky_model_state_[DimensionlessSpectrum::SIZE];
 };
 
 #endif  // ATMOSPHERE_MODEL_HOSEK_HOSEK_H_

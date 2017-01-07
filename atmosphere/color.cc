@@ -32,6 +32,11 @@
 #include "atmosphere/atmosphere.h"
 #include "math/matrix.h"
 
+using dimensional::Matrix3;
+using dimensional::Vector3;
+using dimensional::Scalar;
+using dimensional::vec3;
+
 namespace {
 
 // The 3 sample wavelengths used when simulating RGB rendering. All the models
@@ -65,9 +70,9 @@ Color GetSrgbColorFrom3SpectrumSamples(const RadianceSpectrum& spectrum) {
   // Compute the normalization vector to properly convert 3 spectrum samples to
   // a perceptual, linear sRGB color.
   static const auto k = []() {
-    WavelengthFunction<Scalar<0, -3, 0, 0, 0>> f;
+    WavelengthFunction<0, -3, 0, 0, 0> f;
     for (unsigned int i = 0; i < f.size(); ++i) {
-      Wavelength lambda = f.GetWavelength(i);
+      Wavelength lambda = f.GetSample(i);
       f[i] = 1.0 / (lambda * lambda * lambda);
     }
     const auto RGB = XYZ_to_sRGB * Vector3<Scalar<-2, -3, 0, 1, 0>>(

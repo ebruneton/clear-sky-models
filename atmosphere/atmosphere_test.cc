@@ -46,7 +46,7 @@ class UniformSky : public Atmosphere {
   }
 };
 
-class TestAtmosphere : public TestCase {
+class TestAtmosphere : public dimensional::TestCase {
  public:
   template<typename T>
   TestAtmosphere(const std::string& name, T test)

@@ -61,7 +61,7 @@ class PerezFunction {
 struct Tables {
   std::vector<ScatteringCoefficient> ozone_samples;
   std::vector<ScatteringCoefficient> vapor_samples;
-  std::vector<Dimensionless> gas_samples;
+  std::vector<Number> gas_samples;
 
   Tables() {
     // Values from Table 2 in Preetham 1999.
@@ -128,7 +128,7 @@ IrradianceSpectrum Preetham::GetSunIrradiance(Length altitude,
   Number air_mass =
       1.0 / (cos(sun_zenith) + 0.15 * pow(93.885 - sun_zenith.to(deg), -1.253));
   for (unsigned int i = 0; i < result.size(); ++i) {
-    Wavelength lambda = result.GetWavelength(i);
+    Wavelength lambda = result.GetSample(i);
     constexpr Wavelength lambda0 = 1000.0 * nm;
     // Transmittance due to Rayleigh scattering.
     Number rayleigh_transmittance =

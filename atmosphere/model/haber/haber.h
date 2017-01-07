@@ -36,7 +36,6 @@
 #include "math/angle.h"
 #include "math/binary_function.h"
 #include "math/vector.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 class Haber : public Atmosphere {
@@ -74,8 +73,8 @@ class Haber : public Atmosphere {
      ceil(((pi / 2.0 + 2.0 * asin(kMaxShellRadius / (2.0 * EarthRadius))) /
          kDeltaPhi)());
 
-  typedef Vector3<Length> Position;
-  typedef Vector3<Number> Direction;
+  typedef dimensional::Vector3<Length> Position;
+  typedef dimensional::Vector3<Number> Direction;
 
   struct Cell {
     Position center;
@@ -113,7 +112,8 @@ class Haber : public Atmosphere {
   Number mie_density_[kNumLayers];
   mutable Angle current_sun_zenith_;
   mutable std::vector<Cell> cells_[kNumTheta][kNumPhi / 2];
-  mutable BinaryFunction<kNumTheta, kNumPhi / 2, RadianceSpectrum> sky_dome_;
+  mutable dimensional::BinaryFunction<kNumTheta, kNumPhi / 2, RadianceSpectrum>
+      sky_dome_;
 };
 
 #endif  // ATMOSPHERE_MODEL_HABER_HABER_H_

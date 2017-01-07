@@ -35,12 +35,12 @@
 namespace {
 
 struct Tables {
-  std::vector<Dimensionless> x_bar_samples;
-  std::vector<Dimensionless> y_bar_samples;
-  std::vector<Dimensionless> z_bar_samples;
-  std::vector<Dimensionless> S0_samples;
-  std::vector<Dimensionless> S1_samples;
-  std::vector<Dimensionless> S2_samples;
+  std::vector<Number> x_bar_samples;
+  std::vector<Number> y_bar_samples;
+  std::vector<Number> z_bar_samples;
+  std::vector<Number> S0_samples;
+  std::vector<Number> S1_samples;
+  std::vector<Number> S2_samples;
 
   Tables() {
     // Values from "CIE (1931) 2-deg color matching functions", see

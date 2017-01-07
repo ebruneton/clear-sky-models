@@ -33,7 +33,6 @@
 #include "atmosphere/atmosphere.h"
 #include "atmosphere/model/bruneton/core.h"
 #include "math/angle.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 class Bruneton : public Atmosphere {

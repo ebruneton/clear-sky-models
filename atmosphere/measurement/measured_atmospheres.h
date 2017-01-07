@@ -37,7 +37,6 @@
 #include "atmosphere/atmosphere.h"
 #include "atmosphere/measurement/measured_atmosphere.h"
 #include "math/angle.h"
-#include "physics/spectrum.h"
 #include "physics/units.h"
 
 class MeasuredAtmospheres : public Atmosphere {

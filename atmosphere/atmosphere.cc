@@ -80,7 +80,7 @@ ScatteringSpectrum NewMieExtinction(double angstrom_alpha,
     double angstrom_beta) {
   ScatteringSpectrum mie;
   for (unsigned int i = 0; i < mie.size(); ++i) {
-    double lambda = mie.GetWavelength(i).to(1000.0 * nm);
+    double lambda = mie.GetSample(i).to(1000.0 * nm);
     mie[i] = angstrom_beta * pow(lambda, -angstrom_alpha) / MieScaleHeight;
   }
   return mie;
@@ -166,7 +166,7 @@ InverseSolidAngle MiePhaseFunction(double g, Number scattering_angle_cosine) {
 const DimensionlessSpectrum& GroundAlbedo() { return ground_albedo; }
 
 int Atmosphere::GetOriginalNumberOfWavelengths() const {
-  return spectrum::NUM_WAVELENGTH;
+  return DimensionlessSpectrum::SIZE;
 }
 
 IrradianceSpectrum Atmosphere::GetSkyIrradiance(Length altitude,

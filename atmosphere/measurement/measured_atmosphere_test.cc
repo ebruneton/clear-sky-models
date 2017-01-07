@@ -33,7 +33,7 @@
 
 #include "test/test_case.h"
 
-class TestMeasuredAtmosphere : public TestCase {
+class TestMeasuredAtmosphere : public dimensional::TestCase {
  public:
   template<typename T>
   TestMeasuredAtmosphere(const std::string& name, T test)
