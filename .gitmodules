@@ -4,3 +4,6 @@
 [submodule "external/minpng"]
 	path = external/minpng
 	url = https://github.com/jrmuizel/minpng
+[submodule "external/progress_bar"]
+	path = external/progress_bar
+	url = https://github.com/ebruneton/progress_bar

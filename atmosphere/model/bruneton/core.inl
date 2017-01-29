@@ -44,11 +44,11 @@ Length Limit(Length r, Number mu) {
 
 // TRANSMITTANCE ---------------------------------------------------------------
 
-void GetTransmittanceRMu(vec2 xy, OUT(Length) r, OUT(Number) muS) {
+void GetTransmittanceRMu(vec2 xy, Length* r, Number* muS) {
   Number x = xy.x / TRANSMITTANCE_W;
   Number y = xy.y / TRANSMITTANCE_H;
-  r = Rg + (y * y) * (Rt - Rg);
-   muS = -0.15 + tan(1.5 * rad * x) / tan(1.5 * rad) * (1.0 + 0.15);
+  *r = Rg + (y * y) * (Rt - Rg);
+  *muS = -0.15 + tan(1.5 * rad * x) / tan(1.5 * rad) * (1.0 + 0.15);
 }
 
 vec2 GetTransmittanceUV(Length r, Number mu) {
@@ -58,13 +58,13 @@ vec2 GetTransmittanceUV(Length r, Number mu) {
 }
 
 DimensionlessSpectrum GetTransmittance(
-    IN(TransmittanceTexture) transmittance_sampler, Length r, Number mu) {
+    const TransmittanceTexture& transmittance_sampler, Length r, Number mu) {
 	vec2 uv = GetTransmittanceUV(r, mu);
   return texture2d(transmittance_sampler, uv);
 }
 
 DimensionlessSpectrum GetTransmittance(
-    IN(TransmittanceTexture) transmittance_sampler, Length r, Number mu,
+    const TransmittanceTexture& transmittance_sampler, Length r, Number mu,
     Length d) {
   static const DimensionlessSpectrum kFullTransmittance(1.0);
   Length r1 = sqrt(r * r + d * d + 2.0 * r * mu * d);
@@ -80,11 +80,11 @@ DimensionlessSpectrum GetTransmittance(
 
 // SKY IRRADIANCE --------------------------------------------------------------
 
-void GetSkyIrradianceRMuS(vec2 xy, OUT(Length) r, OUT(Number) muS) {
+void GetSkyIrradianceRMuS(vec2 xy, Length* r, Number* muS) {
   Number x = (xy.x - 0.5) / (IRRADIANCE_W - 1);
   Number y = (xy.y - 0.5) / (IRRADIANCE_H - 1);
-  r = Rg + y * (Rt - Rg);
-  muS = -0.2 + x * (1.0 + 0.2);
+  *r = Rg + y * (Rt - Rg);
+  *muS = -0.2 + x * (1.0 + 0.2);
 }
 
 vec2 GetSkyIrradianceUV(Length r, Number muS) {
@@ -94,7 +94,7 @@ vec2 GetSkyIrradianceUV(Length r, Number muS) {
 }
 
 IrradianceSpectrum GetSkyIrradiance(
-    IN(SkyIrradianceTexture) sky_irradiance_sampler, Length r, Number muS) {
+    const SkyIrradianceTexture& sky_irradiance_sampler, Length r, Number muS) {
   vec2 uv = GetSkyIrradianceUV(r, muS);
   return texture2d(sky_irradiance_sampler, uv);
 }
@@ -103,25 +103,25 @@ IrradianceSpectrum GetSkyIrradiance(
 
 void GetMuMuSNu(vec2 xy, Length r,
     Length dmin, Length dmax, Length dminp, Length dmaxp,
-    OUT(Number) mu, OUT(Number) muS, OUT(Number) nu) {
+    Number* mu, Number* muS, Number* nu) {
   Number x = xy.x - 0.5;
   Number y = xy.y - 0.5;
   if (y < RES_MU / 2.0) {
     Length d = (1.0 - y / (RES_MU / 2.0 - 1.0)) * dmaxp;
     d = min(max(dminp, d), dmaxp * 0.999);
-    mu = (Rg * Rg - r * r - d * d) / (2.0 * r * d);
-    mu = min(mu, -sqrt(1.0 - (Rg / r) * (Rg / r)) - 0.001);
+    *mu = (Rg * Rg - r * r - d * d) / (2.0 * r * d);
+    *mu = min(*mu, -sqrt(1.0 - (Rg / r) * (Rg / r)) - 0.001);
   } else {
     Length d = ((y - RES_MU / 2.0) / (RES_MU / 2.0 - 1.0)) * dmax;
     d = min(max(dmin, d), dmax * 0.999);
-    mu = (Rt * Rt - r * r - d * d) / (2.0 * r * d);
+    *mu = (Rt * Rt - r * r - d * d) / (2.0 * r * d);
   }
-  muS = mod(x, RES_MU_S) / (RES_MU_S - 1.0);
+  *muS = mod(x, RES_MU_S) / (RES_MU_S - 1.0);
   // paper formula
   // muS = -(0.6 + log(1.0 - muS * (1.0 -  exp(-3.6)))) / 3.0;
   // better formula
-  muS = tan((2.0 * muS - 1.0 + 0.26) * 1.1 * rad) / tan(1.26 * 1.1 * rad);
-  nu = -1.0 + floor(x / RES_MU_S) / (RES_NU - 1) * 2.0;
+  *muS = tan((2.0 * *muS - 1.0 + 0.26) * 1.1 * rad) / tan(1.26 * 1.1 * rad);
+  *nu = -1.0 + floor(x / RES_MU_S) / (RES_NU - 1) * 2.0;
 }
 
 // PRECOMPUTATIONS -------------------------------------------------------------
@@ -149,26 +149,27 @@ Length ComputeOpticalLength(Length scale_height, Length r, Number mu) {
 DimensionlessSpectrum ComputeTransmittance(vec2 xy) {
   Length r;
   Number muS;
-  GetTransmittanceRMu(xy, r, muS);
+  GetTransmittanceRMu(xy, &r, &muS);
   return exp(-(
       RayleighScattering() * ComputeOpticalLength(HR, r, muS) +
       MieExtinction() * ComputeOpticalLength(HM, r, muS)));
 }
 
 IrradianceSpectrum ComputeSkyIrradiance1(
-    IN(TransmittanceTexture) transmittance_sampler, vec2 xy) {
+    const TransmittanceTexture& transmittance_sampler, vec2 xy) {
   Length r;
   Number muS;
-  GetSkyIrradianceRMuS(xy, r, muS);
+  GetSkyIrradianceRMuS(xy, &r, &muS);
   return GetTransmittance(transmittance_sampler, r, muS) * max(muS, 0.0) *
       SolarSpectrum();
 }
 
-void ComputeInscatter1Integrand(IN(TransmittanceTexture) transmittance_sampler,
+void ComputeInscatter1Integrand(
+    const TransmittanceTexture& transmittance_sampler,
     Length r, Number mu, Number muS, Number nu, Length t,
-    OUT(DimensionlessSpectrum) rayleigh, OUT(DimensionlessSpectrum) mie) {
-  rayleigh = DimensionlessSpectrum(0.0);
-  mie = DimensionlessSpectrum(0.0);
+    DimensionlessSpectrum* rayleigh, DimensionlessSpectrum* mie) {
+  *rayleigh = DimensionlessSpectrum(0.0);
+  *mie = DimensionlessSpectrum(0.0);
   Length ri = sqrt(r * r + t * t + 2.0 * r * mu * t);
   Number muSi = (nu * t + muS * r) / ri;
   ri = max(Rg, ri);
@@ -176,17 +177,17 @@ void ComputeInscatter1Integrand(IN(TransmittanceTexture) transmittance_sampler,
     DimensionlessSpectrum ti =
         GetTransmittance(transmittance_sampler, r, mu, t) *
         GetTransmittance(transmittance_sampler, ri, muSi);
-    rayleigh = ti * exp(-(ri - Rg) / HR);
-    mie = ti * exp(-(ri - Rg) / HM);
+    *rayleigh = ti * exp(-(ri - Rg) / HR);
+    *mie = ti * exp(-(ri - Rg) / HM);
   }
 }
 
 void ComputeInscatter1(
-    IN(TransmittanceTexture) transmittance_sampler, Length r, Length dmin,
+    const TransmittanceTexture& transmittance_sampler, Length r, Length dmin,
     Length dmax, Length dminp, Length dmaxp, vec2 xy,
-    OUT(IrradianceSpectrum) rayleigh, OUT(IrradianceSpectrum) mie) {
+    IrradianceSpectrum* rayleigh, IrradianceSpectrum* mie) {
   Number mu, muS, nu;
-  GetMuMuSNu(xy, r, dmin, dmax, dminp, dmaxp, mu, muS, nu);
+  GetMuMuSNu(xy, r, dmin, dmax, dminp, dmaxp, &mu, &muS, &nu);
 
   DimensionlessSpectrum ray_sum = DimensionlessSpectrum(0.0);
   DimensionlessSpectrum mie_sum = DimensionlessSpectrum(0.0);
@@ -194,31 +195,32 @@ void ComputeInscatter1(
   DimensionlessSpectrum rayi;
   DimensionlessSpectrum miei;
   ComputeInscatter1Integrand(
-      transmittance_sampler, r, mu, muS, nu, 0.0 * m, rayi, miei);
+      transmittance_sampler, r, mu, muS, nu, 0.0 * m, &rayi, &miei);
   for (int i = 1; i <= INSCATTER_INTEGRAL_SAMPLES; ++i) {
     Length xj = i * dx;
     DimensionlessSpectrum rayj;
     DimensionlessSpectrum miej;
     ComputeInscatter1Integrand(
-        transmittance_sampler, r, mu, muS, nu, xj, rayj, miej);
+        transmittance_sampler, r, mu, muS, nu, xj, &rayj, &miej);
     ray_sum += (rayi + rayj);
     mie_sum += (miei + miej);
     rayi = rayj;
     miei = miej;
   }
-  rayleigh = ray_sum * (dx / 2) * RayleighScattering() * SolarSpectrum();
-  mie = mie_sum * (dx / 2) * MieScattering() * SolarSpectrum();
+  *rayleigh = ray_sum * (dx / 2) * RayleighScattering() * SolarSpectrum();
+  *mie = mie_sum * (dx / 2) * MieScattering() * SolarSpectrum();
 }
 
 void ComputeInscatterS(
-    IN(TransmittanceTexture) transmittance_sampler,
-    IN(SkyIrradianceTexture) sky_irradiance_sampler,
-    IN(IrradianceTexture) rayleigh_sampler, IN(IrradianceTexture) mie_sampler,
-    IN(RadianceTexture) raymie_sampler,
+    const TransmittanceTexture& transmittance_sampler,
+    const SkyIrradianceTexture& sky_irradiance_sampler,
+    const IrradianceTexture& rayleigh_sampler,
+    const IrradianceTexture& mie_sampler,
+    const RadianceTexture& raymie_sampler,
     Length r, Length dmin, Length dmax, Length dminp, Length dmaxp, vec2 xy,
-    bool first_iteration, OUT(RadianceDensitySpectrum) raymie) {
+    bool first_iteration, RadianceDensitySpectrum* raymie) {
   Number mu, muS, nu;
-  GetMuMuSNu(xy, r, dmin, dmax, dminp, dmaxp, mu, muS, nu);
+  GetMuMuSNu(xy, r, dmin, dmax, dminp, dmaxp, &mu, &muS, &nu);
 
   const Angle dphi = pi / INSCATTER_SPHERICAL_INTEGRAL_SAMPLES;
   const Angle dtheta = pi / INSCATTER_SPHERICAL_INTEGRAL_SAMPLES;
@@ -234,7 +236,7 @@ void ComputeInscatterS(
   Number sx = v.x == 0.0 ? 0.0 : (nu - muS * mu) / v.x;
   vec3 s = vec3(sx, sqrt(max(0.0, 1.0 - sx * sx - muS * muS)), muS);
 
-  raymie = RadianceDensitySpectrum(0.0 * SpectralRadianceDensity::Unit());
+  *raymie = RadianceDensitySpectrum(0.0 * SpectralRadianceDensity::Unit());
 
   // integral over 4.PI around x with two nested loops over w directions (theta,phi) -- Eq (7)
   for (int itheta = 0; itheta < INSCATTER_SPHERICAL_INTEGRAL_SAMPLES;
@@ -291,7 +293,7 @@ void ComputeInscatterS(
       // = light arriving at x from direction w (raymie1) *
       //     SUM(scattering coefficient * phaseFunction)
       // see Eq (7)
-      raymie += raymie1 * (
+      *raymie += raymie1 * (
           RayleighScattering() * exp(-(r - Rg) / HR) * pr2 +
           MieScattering() * exp(-(r - Rg) / HM) * pm2) * dw;
     }
@@ -299,12 +301,14 @@ void ComputeInscatterS(
   // output raymie = J[T.alpha/PI.deltaE + deltaS] (line 7 in algorithm 4.1)
 }
 
-IrradianceSpectrum ComputeSkyIrradianceN(IN(IrradianceTexture) rayleigh_sampler,
-    IN(IrradianceTexture) mie_sampler, IN(RadianceTexture) raymie_sampler,
+IrradianceSpectrum ComputeSkyIrradianceN(
+    const IrradianceTexture& rayleigh_sampler,
+    const IrradianceTexture& mie_sampler,
+    const RadianceTexture& raymie_sampler,
     vec2 xy, bool first_iteration) {
   Length r;
   Number muS;
-  GetSkyIrradianceRMuS(xy, r, muS);
+  GetSkyIrradianceRMuS(xy, &r, &muS);
 
   const Angle dphi = pi / IRRADIANCE_INTEGRAL_SAMPLES;
   const Angle dtheta = pi / IRRADIANCE_INTEGRAL_SAMPLES;
@@ -335,8 +339,8 @@ IrradianceSpectrum ComputeSkyIrradianceN(IN(IrradianceTexture) rayleigh_sampler,
 }
 
 RadianceDensitySpectrum ComputeInscatterNIntegrand(
-    IN(TransmittanceTexture) transmittance_sampler,
-    IN(RadianceDensityTexture) radiance_density_sampler,
+    const TransmittanceTexture& transmittance_sampler,
+    const RadianceDensityTexture& radiance_density_sampler,
     Length r, Number mu, Number muS, Number nu, Length t) {
   Length ri = max(sqrt(r * r + t * t + 2.0 * r * mu * t), Rg + 10.0 * m);
   Number mui = (r * mu + t) / ri;
@@ -346,14 +350,14 @@ RadianceDensitySpectrum ComputeInscatterNIntegrand(
 }
 
 void ComputeInscatterN(
-    IN(TransmittanceTexture) transmittance_sampler,
-    IN(RadianceDensityTexture) radiance_density_sampler,
+    const TransmittanceTexture& transmittance_sampler,
+    const RadianceDensityTexture& radiance_density_sampler,
     Length r, Length dmin, Length dmax, Length dminp, Length dmaxp, vec2 xy,
-    OUT(RadianceSpectrum) raymie) {
+    RadianceSpectrum* raymie) {
   Number mu, muS, nu;
-  GetMuMuSNu(xy, r, dmin, dmax, dminp, dmaxp, mu, muS, nu);
+  GetMuMuSNu(xy, r, dmin, dmax, dminp, dmaxp, &mu, &muS, &nu);
 
-  raymie = RadianceSpectrum(0.0 * SpectralRadiance::Unit());
+  *raymie = RadianceSpectrum(0.0 * SpectralRadiance::Unit());
 
   Length dx = Limit(r, mu) / INSCATTER_INTEGRAL_SAMPLES;
   RadianceDensitySpectrum raymiei = ComputeInscatterNIntegrand(
@@ -362,7 +366,7 @@ void ComputeInscatterN(
     Length xj = i * dx;
     RadianceDensitySpectrum raymiej = ComputeInscatterNIntegrand(
         transmittance_sampler, radiance_density_sampler, r, mu, muS, nu, xj);
-    raymie += (raymiei + raymiej) * (dx / 2.0);
+    *raymie += (raymiei + raymiej) * (dx / 2.0);
     raymiei = raymiej;
   }
 }

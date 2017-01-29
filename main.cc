@@ -50,6 +50,7 @@
 #include "atmosphere/sun_direction.h"
 #include "math/angle.h"
 #include "physics/units.h"
+#include "util/progress_bar.h"
 
 namespace {
 
@@ -147,6 +148,19 @@ void SaveLibRadtranRmseTable(const std::string& libradtran_uvspec,
     input.close();
   }
 
+  int total_progress = 0;
+  for (double alpha = 0.0; alpha <= 2.0; alpha += 0.2) {
+    for (double beta = 0.02; beta <= 0.2; beta += 0.02) {
+      for (double g = 0.5; g <= 0.9; g += 0.1) {
+        if (already_computed.find(key(alpha, beta, g)) ==
+            already_computed.end()) {
+          ++total_progress;
+        }
+      }
+    }
+  }
+  ProgressBar progress_bar(total_progress);
+
   SpectralRadiance min_rmse = 0.0 * watt_per_square_meter_per_sr_per_nm;
   double min_alpha, min_beta, min_g;
   std::ofstream output(Comparisons::GetOutputDir() + "libradtran_rmse.txt",
@@ -159,7 +173,6 @@ void SaveLibRadtranRmseTable(const std::string& libradtran_uvspec,
         if (it != already_computed.end()) {
           rmse = (it->second * 1e-3) * watt_per_square_meter_per_sr_per_nm;
         } else {
-          std::cout << alpha << " " << beta << " " << g << std::endl;
           LibRadtran lib_radtran(
               libradtran_uvspec, alpha, beta, g, true /* ground_albedo */,
               LibRadtran::HEMISPHERICAL_FUNCTION_CACHE);
@@ -177,6 +190,7 @@ void SaveLibRadtranRmseTable(const std::string& libradtran_uvspec,
           min_beta = beta;
           min_g = g;
         }
+        progress_bar.Increment(1);
       }
     }
   }

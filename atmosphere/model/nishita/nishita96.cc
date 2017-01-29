@@ -33,6 +33,8 @@
 #include <sstream>
 #include <string>
 
+#include "util/progress_bar.h"
+
 namespace {
 
 using dimensional::vec3;
@@ -266,16 +268,8 @@ void Nishita96::MaybePrecomputeSingleScatteringTables(Angle sun_zenith) const {
     f.open(filename.str());
     if (f.good()) {
       f.close();
-      if (i == 0) {
-        std::cout << "Loading single scattering tables: "
-                  << sun_zenith.to(deg) << std::endl;
-      }
       sample_single_scattering_[i].value_.Load(filename.str());
     } else {
-      if (i == 0) {
-        std::cout << "Precompute single scattering tables: "
-                  << sun_zenith.to(deg) << std::endl;
-      }
       PreComputeSingleScatteringTable(
           sun_zenith, view_zenith, &sample_single_scattering_[i]);
       sample_single_scattering_[i].value_.Save(filename.str());
@@ -286,7 +280,8 @@ void Nishita96::MaybePrecomputeSingleScatteringTables(Angle sun_zenith) const {
 void Nishita96::PreComputeSingleScatteringTable(Angle sun_zenith,
     Angle view_zenith, SingleScatteringTable* output) const {
   Direction sun_dir(sin(sun_zenith), 0.0, cos(sun_zenith));
-  for (int i = 0; i < kNumSteps; ++i) {
+  ProgressBar progress_bar(kNumSteps * kNumSteps);
+  RunJobs([&](int i) {
     for (int j = 0; j < kNumSteps; ++j) {
       Position p0;
       Position p1;
@@ -295,8 +290,9 @@ void Nishita96::PreComputeSingleScatteringTable(Angle sun_zenith,
       Length step = length(p1 - p0);
       Direction d = (p1 - p0) / step;
       PreComputeSingleScattering(p0, d, step, sun_dir, i, j, &(output->value_));
+      progress_bar.Increment(1);
     }
-  }
+  }, kNumSteps);
 }
 
 void Nishita96::PreComputeSingleScattering(const Position& p,

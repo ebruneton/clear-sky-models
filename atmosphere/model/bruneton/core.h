@@ -51,9 +51,6 @@ typedef dimensional::BinaryFunction<
     TRANSMITTANCE_W, TRANSMITTANCE_H, DimensionlessSpectrum>
         TransmittanceTexture;
 
-void GetTransmittanceRMu(dimensional::vec2 xy, Length& r, Number& muS);
-dimensional::vec2 GetTransmittanceUV(Length r, Number mu);
-
 DimensionlessSpectrum GetTransmittance(
     const TransmittanceTexture& transmittance_sampler, Length r, Number mu);
 
@@ -70,9 +67,6 @@ const unsigned int IRRADIANCE_H = 16;
 typedef dimensional::BinaryFunction<
     IRRADIANCE_W, IRRADIANCE_H, IrradianceSpectrum>
         SkyIrradianceTexture;
-
-void GetSkyIrradianceRMuS(dimensional::vec2 xy, Length& r, Number& muS);
-dimensional::vec2 GetSkyIrradianceUV(Length r, Number muS);
 
 IrradianceSpectrum GetSkyIrradiance(
     const SkyIrradianceTexture& sky_irradiance_sampler, Length r, Number muS);
@@ -101,41 +95,18 @@ typedef dimensional::TernaryFunction<
     RES_MU_S * RES_NU, RES_MU, RES_R, RadianceDensitySpectrum>
         RadianceDensityTexture;
 
-void SetLayer(int layer, Length& r, Length& dmin, Length& dmax, Length& dminp,
-    Length& dmaxp);
-
-void GetMuMuSNu(dimensional::vec2 xy, Length r, Length dmin, Length dmax,
-    Length dminp, Length dmaxp, Number& mu, Number& muS, Number& nu);
-
 // PRECOMPUTATIONS -------------------------------------------------------------
 
 DimensionlessSpectrum ComputeTransmittance(dimensional::vec2 xy);
 
 void ComputeTransmittance(TransmittanceTexture* transmittance_sampler);
 
-IrradianceSpectrum ComputeSkyIrradiance1(
-    const TransmittanceTexture& transmittance_sampler, dimensional::vec2 xy);
-
 void ComputeSkyIrradiance1(const TransmittanceTexture& transmittance_sampler,
     SkyIrradianceTexture* sky_irradiance);
-
-void ComputeInscatter1(
-    const TransmittanceTexture& transmittance_sampler, Length r, Length dmin,
-    Length dmax, Length dminp, Length dmaxp, dimensional::vec2 xy,
-    IrradianceSpectrum& rayleigh, IrradianceSpectrum& mie);
 
 void ComputeInscatter1(const TransmittanceTexture& transmittance_sampler,
     IrradianceTexture* rayleigh_single_scatter_sampler,
     IrradianceTexture* mie_single_scatter_sampler);
-
-void ComputeInscatterS(
-    const TransmittanceTexture& transmittance_sampler,
-    const SkyIrradianceTexture& sky_irradiance_texture,
-    const IrradianceTexture& rayleigh_sampler,
-    const IrradianceTexture& mie_sampler, const RadianceTexture& raymie_sampler,
-    Length r, Length dmin, Length dmax, Length dminp, Length dmaxp,
-    dimensional::vec2 xy, bool first_iteration,
-    RadianceDensitySpectrum& raymie);
 
 void ComputeInscatterS(const TransmittanceTexture& transmittance_sampler,
     const SkyIrradianceTexture& sky_irradiance_texture,
@@ -143,20 +114,9 @@ void ComputeInscatterS(const TransmittanceTexture& transmittance_sampler,
     const IrradianceTexture& mie_sampler, const RadianceTexture& raymie_sampler,
     bool first_iteration, RadianceDensityTexture* raymie);
 
-IrradianceSpectrum ComputeSkyIrradianceN(
-    const IrradianceTexture& rayleigh_sampler,
-    const IrradianceTexture& mie_sampler, const RadianceTexture& raymie_sampler,
-    dimensional::vec2 xy, bool first_iteration);
-
 void ComputeSkyIrradianceN(const IrradianceTexture& rayleigh_sampler,
     const IrradianceTexture& mie_sampler, const RadianceTexture& raymie_sampler,
     bool first_iteration, SkyIrradianceTexture* sky_irradiance);
-
-void ComputeInscatterN(
-    const TransmittanceTexture& transmittance_sampler,
-    const RadianceDensityTexture& radiance_density_sampler,
-    Length r, Length dmin, Length dmax, Length dminp, Length dmaxp,
-    dimensional::vec2 xy, RadianceSpectrum& raymie);
 
 void ComputeInscatterN(const TransmittanceTexture& transmittance_sampler,
     const RadianceDensityTexture& radiance_density_sampler,

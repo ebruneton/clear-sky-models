@@ -47,8 +47,9 @@
 			<Add option="-pedantic" />
 			<Add option="-Wall" />
 			<Add option="-std=c++11" />
+			<Add directory="external" />
 			<Add directory="external/dimensional_types" />
-			<Add directory="external/minpng" />
+			<Add directory="external/progress_bar" />
 		</Compiler>
 		<Linker>
 			<Add option="-pthread" />
@@ -118,6 +119,8 @@
 			<Option target="Debug" />
 			<Option target="Release" />
 		</Unit>
+		<Unit filename="external/progress_bar/util/progress_bar.cc" />
+		<Unit filename="external/progress_bar/util/progress_bar.h" />
 		<Unit filename="main.cc">
 			<Option target="Release" />
 			<Option target="Debug" />

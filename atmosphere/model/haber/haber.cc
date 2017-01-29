@@ -35,8 +35,9 @@
 #include <map>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <utility>
+
+#include "util/progress_bar.h"
 
 namespace {
 
@@ -75,7 +76,6 @@ constexpr Length Haber::kMaxLayerHeight;
 
 Haber::Haber(ScatteringType scattering_type)
     : scattering_type_(scattering_type) {
-  std::cout << "Initializing..." << std::endl;
   for (int i = 0; i < kNumLayers; ++i) {
     Length layer_center = (GetLayerHeight(i) + GetLayerHeight(i + 1)) * 0.5;
     rayleigh_density_[i] = exp(-layer_center / RayleighScaleHeight);
@@ -118,7 +118,6 @@ Haber::Haber(ScatteringType scattering_type)
       assert(cells_[i][j].size() == cells_[i][0].size());
     }
   }
-  std::cout << num_cells << " cells initialized." << std::endl;
 }
 
 IrradianceSpectrum Haber::GetSunIrradiance(Length altitude,
@@ -151,7 +150,6 @@ void Haber::MaybeInit(Angle sun_zenith) const {
     return;
   }
   current_sun_zenith_ = sun_zenith;
-  std::cout << "Initializing " << sun_zenith.to(deg) << "..." << std::endl;
 
   const std::string name = GetCacheFileName(sun_zenith, scattering_type_);
   std::ifstream f;
@@ -163,7 +161,11 @@ void Haber::MaybeInit(Angle sun_zenith) const {
     ComputeSkyDome(sun_zenith, SINGLE_SCATTERING_ONLY);
     sky_dome_.Save(GetCacheFileName(sun_zenith, SINGLE_SCATTERING_ONLY));
 
-    for (int i = 2; i <= 4; ++i) {
+    constexpr int kNumScatteringOrders = 4;
+    for (int i = 2; i <= kNumScatteringOrders; ++i) {
+      std::cout << "Precomputing (sun zenith angle " << sun_zenith.to(deg)
+          << "), step " << i - 1 << "/" << kNumScatteringOrders - 1 << "..."
+          << std::endl;
       ComputeMultipleScatter(sun_zenith, i == 2);
       InterpolateMultipleScatter(i == 2);
       AccumulateMultipleScatter();
@@ -180,7 +182,6 @@ void Haber::MaybeInit(Angle sun_zenith) const {
 }
 
 void Haber::ComputeSingleScatter(Angle sun_zenith) const {
-  std::cout << "Single scatter..." << std::endl;
   for (int i = 0; i < kNumTheta; ++i) {
     for (int j = 0; j < kNumPhi / 2; ++j) {
       std::vector<Cell>& cells = cells_[i][j];
@@ -199,62 +200,37 @@ void Haber::ComputeSingleScatter(Angle sun_zenith) const {
   }
 }
 
-namespace {
-
-constexpr unsigned int NUM_THREADS = 8;
-
-}  // anonymous namespace
-
 void Haber::ComputeMultipleScatter(Angle sun_zenith,
     bool double_scatter) const {
-  std::cout << "Multiple scatter..." << std::endl;
-  std::thread threads[NUM_THREADS];
-  for (unsigned int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
-    const Haber* self = this;
-    threads[thread_id] =
-        std::thread([self, sun_zenith, double_scatter, thread_id]() {
-          self->ComputeMultipleScatter(sun_zenith, double_scatter, thread_id);
-        });
-  }
-  for (unsigned int thread_id = 0; thread_id < NUM_THREADS; ++thread_id) {
-    threads[thread_id].join();
-  }
-  std::cout << "Done." << std::endl;
-}
-
-void Haber::ComputeMultipleScatter(Angle sun_zenith,
-    bool double_scatter, unsigned int thread_id) const {
-  Direction sun_dir = Direction(sin(sun_zenith), 0.0, cos(sun_zenith));
-  DimensionlessSpectrum transmittances[kNumPhi];
-  int sum = 0;
-  int index = 0;
+  int total_progress = 0;
   for (int i_tgt = 0; i_tgt < kNumTheta; ++i_tgt) {
     for (size_t k_tgt = 0; k_tgt < cells_[i_tgt][0].size(); ++k_tgt) {
       if (cells_[i_tgt][0][k_tgt].shell_index % 4 != 0) {
         continue;
       }
-      if ((index++) % NUM_THREADS != thread_id) {
-        continue;
+      for (int i_src = 0; i_src < kNumTheta; ++i_src) {
+        for (size_t k_src = 0; k_src < cells_[i_src][0].size(); ++k_src) {
+          if (cells_[i_src][0][k_src].shell_index % 4 != 0) {
+            continue;
+          }
+          total_progress += 1;
+        }
       }
-      sum += 1;
     }
   }
-  int cur = 0;
-  index = 0;
-  for (int i_tgt = 0; i_tgt < kNumTheta; ++i_tgt) {
+  ProgressBar progress_bar(total_progress);
+
+  RunJobs([&](int i_tgt) {
+    Direction sun_dir = Direction(sin(sun_zenith), 0.0, cos(sun_zenith));
+    DimensionlessSpectrum transmittances[kNumPhi];
     for (size_t k_tgt = 0; k_tgt < cells_[i_tgt][0].size(); ++k_tgt) {
       Cell& target0 = cells_[i_tgt][0][k_tgt];
       if (target0.shell_index % 4 != 0) {
         continue;
       }
-      if ((index++) % NUM_THREADS != thread_id) {
-        continue;
-      }
       auto target0_scatter = (
           RayleighScattering() * rayleigh_density_[target0.layer_index] +
           MieScattering() * mie_density_[target0.layer_index]) * target0.volume;
-      std::cout << thread_id << ": " << cur << " / " << sum << std::endl;
-      ++cur;
 
       for (int i_src = 0; i_src < kNumTheta; ++i_src) {
         for (size_t k_src = 0; k_src < cells_[i_src][0].size(); ++k_src) {
@@ -312,10 +288,11 @@ void Haber::ComputeMultipleScatter(Angle sun_zenith,
                   src_radiance * target0_scatter * src_solid_angle;
             }
           }
+          progress_bar.Increment(1);
         }
       }
     }
-  }
+  }, kNumTheta);
 }
 
 void Haber::InterpolateMultipleScatter(bool double_scatter) const {
@@ -390,7 +367,6 @@ void Haber::AccumulateMultipleScatter() const {
 
 void Haber::ComputeSkyDome(Angle sun_zenith,
     ScatteringType scattering_type) const {
-  std::cout << "Gather..." << std::endl;
   Position viewer = Position(0.0 * m, 0.0 * m, EarthRadius);
   for (int i = 0; i < kNumTheta; ++i) {
     Angle view_zenith = (i + 0.5) * kDeltaPhi;

@@ -34,16 +34,6 @@
 
 #include "atmosphere/model/bruneton/core.h"
 
-namespace {
-
-std::string ToString(int i) {
-  std::stringstream f;
-  f << i;
-  return f.str();
-}
-
-}  // anonymous namespace
-
 Bruneton::Bruneton(ScatteringType scattering_type,
     int original_number_of_wavelength)
         : original_number_of_wavelength_(original_number_of_wavelength) {
@@ -55,12 +45,14 @@ Bruneton::Bruneton(ScatteringType scattering_type,
   f.open(name);
   if (f.good()) {
     f.close();
-    std::cout << "Loading..." << std::endl;
     transmittance_sampler_.Load(name);
   } else {
     ComputeTransmittance(&transmittance_sampler_);
     transmittance_sampler_.Save(name);
   }
+
+  constexpr int kNumScatteringOrders = 4;
+  constexpr int kNumSteps = 2 * kNumScatteringOrders - 1;
 
   if (scattering_type == DOUBLE_SCATTERING_ONLY) {
     inscatter1R_sampler_.Set(
@@ -72,10 +64,10 @@ Bruneton::Bruneton(ScatteringType scattering_type,
     f.open(name);
     if (f.good()) {
       f.close();
-      std::cout << "Loading..." << std::endl;
       inscatter1R_sampler_.Load(name);
       inscatter1M_sampler_.Load(cache_directory + "inscatter1M.dat");
     } else {
+      std::cout << "Precomputing, step 1/" << kNumSteps << "..." << std::endl;
       ComputeInscatter1(transmittance_sampler_, &inscatter1R_sampler_,
           &inscatter1M_sampler_);
       inscatter1R_sampler_.Save(name);
@@ -90,7 +82,6 @@ Bruneton::Bruneton(ScatteringType scattering_type,
     f.open(name);
     if (f.good()) {
       f.close();
-      std::cout << "Loading..." << std::endl;
       sky_irradiance_sum_sampler_.Load(name);
     } else {
       std::cerr << name << " must be precomputed. Run with ALL_ORDERS first."
@@ -103,7 +94,6 @@ Bruneton::Bruneton(ScatteringType scattering_type,
     f.open(name);
     if (f.good()) {
       f.close();
-      std::cout << "Loading..." << std::endl;
       inscatterN_sum_sampler_.Load(name);
       sky_irradiance_sum_sampler_.Load(cache_directory + "irradiance3.dat");
     } else {
@@ -117,7 +107,6 @@ Bruneton::Bruneton(ScatteringType scattering_type,
     f.open(name);
     if (f.good()) {
       f.close();
-      std::cout << "Loading..." << std::endl;
       inscatterN_sum_sampler_.Load(name);
       sky_irradiance_sum_sampler_.Load(cache_directory + "irradianceNSum.dat");
       return;
@@ -129,7 +118,6 @@ Bruneton::Bruneton(ScatteringType scattering_type,
   f.open(name);
   if (f.good()) {
     f.close();
-    std::cout << "Loading..." << std::endl;
     sky_irradiance_sampler.Load(name);
   } else {
     ComputeSkyIrradiance1(transmittance_sampler_, &sky_irradiance_sampler);
@@ -138,17 +126,18 @@ Bruneton::Bruneton(ScatteringType scattering_type,
 
   RadianceDensityTexture inscatterS_sampler;
   RadianceTexture inscatterN_sampler;
-  for (int i = 2; i <= 4; ++i) {
-    const std::string iteration = ToString(i);
+  for (int i = 2; i <= kNumScatteringOrders; ++i) {
+    const std::string iteration = std::to_string(i);
     bool first_iteration = i == 2;
 
     name = cache_directory + "inscatterS" + iteration + ".dat";
     f.open(name);
     if (f.good()) {
       f.close();
-      std::cout << "Loading..." << std::endl;
       inscatterS_sampler.Load(name);
     } else {
+      std::cout << "Precomputing, step " << 2 * i - 2 << "/" << kNumSteps
+                << "..." << std::endl;
       ComputeInscatterS(transmittance_sampler_, sky_irradiance_sampler,
           inscatter1R_sampler_, inscatter1M_sampler_, inscatterN_sampler,
           first_iteration, &inscatterS_sampler);
@@ -159,7 +148,6 @@ Bruneton::Bruneton(ScatteringType scattering_type,
     f.open(name);
     if (f.good()) {
       f.close();
-      std::cout << "Loading..." << std::endl;
       sky_irradiance_sampler.Load(name);
     } else {
       ComputeSkyIrradianceN(inscatter1R_sampler_, inscatter1M_sampler_,
@@ -171,9 +159,10 @@ Bruneton::Bruneton(ScatteringType scattering_type,
     f.open(name);
     if (f.good()) {
       f.close();
-      std::cout << "Loading..." << std::endl;
       inscatterN_sampler.Load(name);
     } else {
+      std::cout << "Precomputing, step " << 2 * i - 1 << "/" << kNumSteps
+                << "..." << std::endl;
       ComputeInscatterN(transmittance_sampler_, inscatterS_sampler,
           &inscatterN_sampler);
       inscatterN_sampler.Save(name);

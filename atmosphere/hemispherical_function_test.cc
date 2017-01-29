@@ -112,11 +112,11 @@ class TestHemisphericalFunction : public dimensional::TestCase {
         f.Set(i, j, i * 10 + j);
       }
     }
-    f.Save("/tmp/clear_sky_models_atmosphere_hemispherical_fuction_test.dat");
+    f.Save("output/Debug/hemispherical_fuction_test.dat");
 
     f = HemisphericalFunction<double>();
 
-    f.Load("/tmp/clear_sky_models_atmosphere_hemispherical_fuction_test.dat");
+    f.Load("output/Debug/hemispherical_fuction_test.dat");
     for (int i = 0; i < 9; ++i) {
       for (int j = 0; j < 9; ++j) {
         ExpectEquals(i * 10 + j, f.Get(i, j));

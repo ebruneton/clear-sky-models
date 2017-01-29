@@ -91,8 +91,6 @@ class Haber : public Atmosphere {
   void MaybeInit(Angle sun_zenith) const;
   void ComputeSingleScatter(Angle sun_zenith) const;
   void ComputeMultipleScatter(Angle sun_zenith, bool double_scatter) const;
-  void ComputeMultipleScatter(Angle sun_zenith, bool double_scatter,
-      unsigned int thread_id) const;
   void InterpolateMultipleScatter(bool double_scatter) const;
   void AccumulateMultipleScatter() const;
   void ComputeSkyDome(Angle sun_zenith, ScatteringType scattering_type) const;

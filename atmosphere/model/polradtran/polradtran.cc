@@ -34,6 +34,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "util/progress_bar.h"
+
 constexpr Angle PolRadtran::kDeltaPhi;
 
 PolRadtran::PolRadtran(const std::string& libradtran_uvspec,
@@ -122,8 +124,8 @@ void PolRadtran::MaybeComputeSkyDome(Angle sun_zenith) const {
   }
 
   const auto& spectrum = sky_dome_.Get(0, 0);
+  ProgressBar progress_bar(kNumTheta);
   for (int i = 0; i < kNumTheta; ++i) {
-    std::cout << i << " / " << kNumTheta << std::endl;
     Angle view_zenith = (i + 0.5) * kDeltaPhi;
     std::ofstream input("output/libradtran/input.txt");
     input << "include output/libradtran/model.txt" << std::endl;
@@ -185,6 +187,7 @@ void PolRadtran::MaybeComputeSkyDome(Angle sun_zenith) const {
         }
       }
     }
+    progress_bar.Increment(i);
   }
   sky_dome_.Save(name.str());
 }

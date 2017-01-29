@@ -36,8 +36,9 @@
 #include <memory>
 #include <sstream>
 
-#include "minpng.h"
+#include "minpng/minpng.h"
 #include "physics/cie.h"
+#include "util/progress_bar.h"
 
 namespace {
 
@@ -188,12 +189,9 @@ void Comparisons::RenderSkyImage(const std::string& name, Angle sun_zenith,
   Number normalization_factor = 36.0 * watt_per_square_meter /
       Integral(atmosphere_.GetSkyIrradiance(0.0 * m, sun_zenith));
 
-  std::unique_ptr<vec3[]> dither(new vec3[width * height]);
-  for (int i = 0; i < width * height; ++i) {
-    dither[i] = vec3(0.0, 0.0, 0.0);
-  }
-  std::unique_ptr<uint32_t[]> pixels(new uint32_t[width * height]);
-  for (int j = 0; j < height; ++j) {
+  std::unique_ptr<vec3[]> data(new vec3[width * height]);
+  ProgressBar progress_bar(width * height);
+  RunJobs([&](int j) {
     for (int i = 0; i < width; ++i) {
       vec3 view_dir = normalize(center + left * Number(i - width / 2) +
           top * Number(height - 1 - j - height / 2));
@@ -211,7 +209,19 @@ void Comparisons::RenderSkyImage(const std::string& name, Angle sun_zenith,
       if (white_balance) {
         rgb = WhiteBalanceNaive(rgb);
       }
-      vec3 color = ToneMapping(rgb) * 255.0 + dither[i + j * width];
+      data[i + j * width] = ToneMapping(rgb) * 255.0;
+      progress_bar.Increment(1);
+    }
+  }, height);
+
+  std::unique_ptr<uint32_t[]> pixels(new uint32_t[width * height]);
+  std::unique_ptr<vec3[]> dither(new vec3[width * height]);
+  for (int i = 0; i < width * height; ++i) {
+    dither[i] = vec3(0.0, 0.0, 0.0);
+  }
+  for (int j = 0; j < height; ++j) {
+    for (int i = 0; i < width; ++i) {
+      vec3 color = data[i + j * width] + dither[i + j * width];
       int red = round(color.x());
       int green = round(color.y());
       int blue = round(color.z());
@@ -287,7 +297,7 @@ void Comparisons::RenderLuminanceAndImage(const std::string& name,
 
   double square_error_sum = 0.0;
   int count = 0;
-  for (int j = 0; j < height; ++j) {
+  RunJobs([&](unsigned int j) {
     for (int i = 0; i < width; ++i) {
       Number x = (i + 0.5 - width / 2.0) / (width / 2.0);
       Number y = (height / 2.0 - 0.5 - j) / (height / 2.0);
@@ -354,7 +364,7 @@ void Comparisons::RenderLuminanceAndImage(const std::string& name,
       b = std::abs(b - blue) * 10;
       pixels7[i + j * width] = (0xFF << 24) | (r << 16) | (g << 8) | b;
     }
-  }
+  }, height);
   DrawCrosses(sun_zenith, sun_azimuth, width, height, pixels1.get());
   DrawCrosses(sun_zenith, sun_azimuth, width, height, pixels2.get());
   DrawCrosses(sun_zenith, sun_azimuth, width, height, pixels3.get());
@@ -494,7 +504,7 @@ void Comparisons::PlotRelativeError(const std::string& name,
   int count = 0;
   auto error_square_sum = 0.0 * watt_per_square_meter_per_sr_per_nm *
       watt_per_square_meter_per_sr_per_nm;
-  for (int j = 0; j < height; ++j) {
+  RunJobs([&](unsigned int j) {
     for (int i = 0; i < width; ++i) {
       Number x = (i + 0.5 - width / 2.0) / (width / 2.0);
       Number y = (height / 2.0 - 0.5 - j) / (height / 2.0);
@@ -526,7 +536,7 @@ void Comparisons::PlotRelativeError(const std::string& name,
       GetErrorColor(relative_error(), &red, &green, &blue);
       pixels[i + j * width] = (0xFF << 24) | (red << 16) | (green << 8) | blue;
     }
-  }
+  }, height);
   DrawCrosses(sun_zenith, sun_azimuth, width, height, pixels.get());
   std::string filename =
       GetOutputDir() + "relative_error_" + name + "_" + name_ + ".png";

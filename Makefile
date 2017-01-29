@@ -29,7 +29,7 @@
 GPP = g++
 GPP_FLAGS = -Wall -Wmain -pedantic -pedantic-errors -std=c++11
 
-INCLUDE_FLAGS = -I. -Iexternal/dimensional_types -Iexternal/minpng
+INCLUDE_FLAGS = -I. -Iexternal -Iexternal/dimensional_types -Iexternal/progress_bar
 
 DEBUG_FLAGS = -g
 RELEASE_FLAGS = -DNDEBUG -O3 -fexpensive-optimizations
@@ -43,9 +43,14 @@ TEST_SOURCES := $(shell find $(DIRS) -name "*test*.cc")
 ALL_SOURCES := $(HEADERS) $(SOURCES) $(TEST_SOURCES) main.cc
 LINT_SOURCES := $(filter-out atmosphere/model/hosek/ArHosek%,$(ALL_SOURCES))
 
-DEBUG_OBJECTS := $(SOURCES:%.cc=output/Debug/%.o)
-RELEASE_OBJECTS := $(SOURCES:%.cc=output/Release/%.o)
+DEBUG_OBJECTS := $(SOURCES:%.cc=output/Debug/%.o) \
+    output/Debug/external/progress_bar/util/progress_bar.o
+
+RELEASE_OBJECTS := $(SOURCES:%.cc=output/Release/%.o) \
+    output/Release/external/progress_bar/util/progress_bar.o
+
 TEST_OBJECTS := $(TEST_SOURCES:%.cc=output/Debug/%.o) \
+    output/Debug/external/progress_bar/util/progress_bar.o \
     output/Debug/external/dimensional_types/test/test_main.o
 
 ARCHIVE_URL := \
