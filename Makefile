@@ -54,7 +54,7 @@ TEST_OBJECTS := $(TEST_SOURCES:%.cc=output/Debug/%.o) \
     output/Debug/external/dimensional_types/test/test_main.o
 
 ARCHIVE_URL := \
-    http://www.graphics.cornell.edu/resources/clearsky/data/2013-05-27/RADIANCE
+    http://web.archive.org/web/20160617214029/http://www.graphics.cornell.edu/resources/clearsky/data/2013-05-27/RADIANCE/
 ARCHIVES := \
     2013-05-27___09.30.00.7z 2013-05-27___09.45.00.7z \
     2013-05-27___10.00.00.7z 2013-05-27___10.15.00.7z \
